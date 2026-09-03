@@ -10,10 +10,12 @@ import {
   ArrowRight,
   TrendingUp,
   MapPin,
-  CalendarCheck
+  CalendarCheck,
+  Bell
 } from 'lucide-react';
 import { TechnicalVisit, Quote, Equipment, MaintenanceLog, CompanySettings } from '../types';
 import { formatCurrency, formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
+import { generateGoogleCalendarUrl } from '../utils/calendarReminder';
 
 interface DashboardViewProps {
   visits: TechnicalVisit[];
@@ -27,6 +29,7 @@ interface DashboardViewProps {
   onOpenQuoteDetails: (quote: Quote) => void;
   onOpenVisitDetails: (visit: TechnicalVisit) => void;
   onQuickUpdateVisitStatus: (visitId: string, status: TechnicalVisit['status']) => void;
+  onOpenReminderModal?: (visit: TechnicalVisit, autoTriggered?: boolean) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -39,7 +42,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNewQuote,
   onOpenQuoteDetails,
   onOpenVisitDetails,
-  onQuickUpdateVisitStatus
+  onQuickUpdateVisitStatus,
+  onOpenReminderModal
 }) => {
   // Current date (local time)
   const todayStr = '2026-09-02'; // or current day
@@ -210,13 +214,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="space-y-3">
             {visits.slice(0, 4).map((visit) => {
+              const googleCalUrl = generateGoogleCalendarUrl(visit, companySettings.tradeName);
               const waText = generateVisitConfirmationMessage(
                 companySettings.tradeName,
                 visit.clientName,
                 visit.date,
                 visit.timeWindow,
                 visit.technicianName,
-                visit.serviceType
+                visit.serviceType,
+                googleCalUrl
               );
               const waLink = createWhatsAppLink(visit.clientPhone, waText);
 
@@ -254,13 +260,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => onOpenReminderModal?.(visit, false)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold border border-sky-200/80 transition-colors"
+                      title="Sincronizar lembrete com alarme no celular"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Lembrete</span>
+                    </button>
+
                     <a
                       href={waLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors"
-                      title="Enviar confirmação no WhatsApp"
+                      title="Enviar confirmação no WhatsApp com link do lembrete"
                     >
                       <Phone className="w-3.5 h-3.5" />
                       <span>WhatsApp</span>

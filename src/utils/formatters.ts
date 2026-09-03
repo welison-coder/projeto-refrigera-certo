@@ -55,16 +55,22 @@ export function generateVisitConfirmationMessage(
   date: string,
   timeWindow: string,
   technicianName: string,
-  serviceType: string
+  serviceType: string,
+  calendarLink?: string
 ): string {
-  return `Olá, ${clientName}! Aqui é da *${companyName}*.
+  let msg = `Olá, ${clientName}! Aqui é da *${companyName}*.
 Confirmamos o agendamento da sua visita técnica:
 📅 Data: *${formatDateBR(date)}*
 ⏰ Horário: *${timeWindow}*
 👨‍🔧 Técnico Responsável: *${technicianName}*
-🛠️ Serviço: *${serviceType}*
+🛠️ Serviço: *${serviceType}*`;
 
-Caso precise reagendar ou tenha alguma dúvida, estamos à disposição!`;
+  if (calendarLink) {
+    msg += `\n\n🔔 *Salvar lembrete com alarme no seu celular:* \n${calendarLink}`;
+  }
+
+  msg += `\n\nCaso precise reagendar ou tenha alguma dúvida, estamos à disposição!`;
+  return msg;
 }
 
 export function generateQuoteWhatsAppMessage(

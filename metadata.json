@@ -2,5 +2,7 @@
   "name": "Refrigera Certo",
   "description": "Sistema de gestão para Refrigera Certo: agendamento de visitas técnicas, emissão de orçamentos e histórico de manutenções.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

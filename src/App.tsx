@@ -15,6 +15,7 @@ import { QuotesView } from './components/QuotesView';
 import { MaintenanceHistoryView } from './components/MaintenanceHistoryView';
 import { ClientsEquipmentView } from './components/ClientsEquipmentView';
 import { CompanyModal } from './components/CompanyModal';
+import { ReminderModal } from './components/ReminderModal';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
@@ -29,6 +30,9 @@ export default function App() {
 
   // Company settings modal
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState<boolean>(false);
+
+  // Reminder modal state
+  const [reminderModalData, setReminderModalData] = useState<{ visit: TechnicalVisit; autoTriggered?: boolean } | null>(null);
 
   // Cross-view selection state
   const [selectedQuoteForPreview, setSelectedQuoteForPreview] = useState<Quote | null>(null);
@@ -229,7 +233,12 @@ export default function App() {
       quoteId: quote.id
     };
     handleSaveVisit(newVisit);
+    setReminderModalData({ visit: newVisit, autoTriggered: true });
     setActiveTab('visits');
+  };
+
+  const handleOpenReminderModal = (visit: TechnicalVisit, autoTriggered: boolean = false) => {
+    setReminderModalData({ visit, autoTriggered });
   };
 
   return (
@@ -261,6 +270,7 @@ export default function App() {
             onOpenQuoteDetails={handleOpenQuoteDetails}
             onOpenVisitDetails={handleOpenVisitDetails}
             onQuickUpdateVisitStatus={handleQuickUpdateVisitStatus}
+            onOpenReminderModal={handleOpenReminderModal}
           />
         )}
 
@@ -274,6 +284,7 @@ export default function App() {
             onDeleteVisit={handleDeleteVisit}
             onOpenCreateQuoteFromVisit={handleCreateQuoteFromVisit}
             onOpenCreateMaintenanceFromVisit={handleCreateMaintenanceFromVisit}
+            onOpenReminderModal={handleOpenReminderModal}
           />
         )}
 
@@ -335,6 +346,15 @@ export default function App() {
         companySettings={companySettings}
         onSaveCompanySettings={setCompanySettings}
         onReloadAllData={handleReloadAllData}
+      />
+
+      {/* Mobile Reminder & Calendar Integration Modal */}
+      <ReminderModal
+        isOpen={Boolean(reminderModalData)}
+        onClose={() => setReminderModalData(null)}
+        visit={reminderModalData?.visit || null}
+        companySettings={companySettings}
+        autoTriggered={reminderModalData?.autoTriggered}
       />
 
     </div>

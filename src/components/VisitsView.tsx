@@ -11,10 +11,13 @@ import {
   Wrench,
   FileText,
   Trash2,
-  Edit2
+  Edit2,
+  Bell,
+  Smartphone
 } from 'lucide-react';
 import { TechnicalVisit, VisitStatus, Client, Equipment, CompanySettings } from '../types';
 import { formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
+import { generateGoogleCalendarUrl, downloadICSFile } from '../utils/calendarReminder';
 
 interface VisitsViewProps {
   visits: TechnicalVisit[];
@@ -25,6 +28,7 @@ interface VisitsViewProps {
   onDeleteVisit: (visitId: string) => void;
   onOpenCreateQuoteFromVisit: (visit: TechnicalVisit) => void;
   onOpenCreateMaintenanceFromVisit: (visit: TechnicalVisit) => void;
+  onOpenReminderModal?: (visit: TechnicalVisit, autoTriggered?: boolean) => void;
 }
 
 export const VisitsView: React.FC<VisitsViewProps> = ({
@@ -35,7 +39,8 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   onSaveVisit,
   onDeleteVisit,
   onOpenCreateQuoteFromVisit,
-  onOpenCreateMaintenanceFromVisit
+  onOpenCreateMaintenanceFromVisit,
+  onOpenReminderModal
 }) => {
   const [statusFilter, setStatusFilter] = useState<string>('Todas');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -55,6 +60,9 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   const [formReportedIssue, setFormReportedIssue] = useState<string>('');
   const [formStatus, setFormStatus] = useState<VisitStatus>('Agendada');
   const [formNotes, setFormNotes] = useState<string>('');
+  const [formAutoSyncReminder, setFormAutoSyncReminder] = useState<boolean>(true);
+  const [formReminderChannel, setFormReminderChannel] = useState<'google' | 'ics' | 'modal'>('google');
+  const [formReminderMinutes, setFormReminderMinutes] = useState<number>(60);
 
   const openNewVisitModal = () => {
     setEditingVisit(null);
@@ -139,6 +147,18 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
 
     onSaveVisit(visitToSave);
     setIsModalOpen(false);
+
+    // Automatic reminder integration for mobile
+    if (formAutoSyncReminder) {
+      if (formReminderChannel === 'google') {
+        window.open(generateGoogleCalendarUrl(visitToSave, companySettings.tradeName), '_blank', 'noopener,noreferrer');
+      } else if (formReminderChannel === 'ics') {
+        downloadICSFile(visitToSave, companySettings.tradeName, formReminderMinutes);
+      }
+      if (onOpenReminderModal) {
+        onOpenReminderModal(visitToSave, true);
+      }
+    }
   };
 
   // Filter logic
@@ -217,13 +237,15 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredVisits.map((visit) => {
+            const googleCalUrl = generateGoogleCalendarUrl(visit, companySettings.tradeName);
             const waText = generateVisitConfirmationMessage(
               companySettings.tradeName,
               visit.clientName,
               visit.date,
               visit.timeWindow,
               visit.technicianName,
-              visit.serviceType
+              visit.serviceType,
+              googleCalUrl
             );
             const waLink = createWhatsAppLink(visit.clientPhone, waText);
 
@@ -324,16 +346,30 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
 
                 {/* Card Footer Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                  {/* WhatsApp confirmation button */}
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-colors"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Confirmar no WhatsApp</span>
-                  </a>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {/* WhatsApp confirmation button */}
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-colors"
+                      title="Enviar confirmação por WhatsApp já com link do calendário"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </a>
+
+                    {/* Mobile Reminder button */}
+                    <button
+                      type="button"
+                      onClick={() => onOpenReminderModal?.(visit, false)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold border border-sky-200/80 transition-colors"
+                      title="Sincronizar ou abrir lembrete no celular com alarme"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Lembrete Celular</span>
+                    </button>
+                  </div>
 
                   {/* Flow actions: Quote or Maintenance */}
                   <div className="flex items-center gap-1.5">
@@ -558,6 +594,63 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                   placeholder="Ex: Trazer escada de 7 degraus, ligar para portaria antes..."
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500"
                 />
+              </div>
+
+              {/* Celular / Lembrete Automático Integration */}
+              <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200/90 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={formAutoSyncReminder}
+                      onChange={(e) => setFormAutoSyncReminder(e.target.checked)}
+                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300"
+                    />
+                    <span className="text-xs font-bold text-sky-950 flex items-center gap-1.5">
+                      <Bell className="w-3.5 h-3.5 text-sky-600" />
+                      Integrar Lembrete no Celular Automaticamente
+                    </span>
+                  </label>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-700 bg-sky-100 px-2 py-0.5 rounded">
+                    Alarme & Agenda
+                  </span>
+                </div>
+
+                {formAutoSyncReminder && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Destino do Lembrete:
+                      </label>
+                      <select
+                        value={formReminderChannel}
+                        onChange={(e) => setFormReminderChannel(e.target.value as 'google' | 'ics' | 'modal')}
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-sky-500"
+                      >
+                        <option value="google">Google Agenda (Android / Celular)</option>
+                        <option value="ics">Apple / Calendário do iPhone (.ics)</option>
+                        <option value="modal">Painel Completo com WhatsApp</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Disparo do Alarme Sonoro:
+                      </label>
+                      <select
+                        value={formReminderMinutes}
+                        onChange={(e) => setFormReminderMinutes(parseInt(e.target.value, 10))}
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-sky-500"
+                      >
+                        <option value={15}>15 minutos antes</option>
+                        <option value={30}>30 minutos antes</option>
+                        <option value={60}>1 hora antes (Recomendado)</option>
+                        <option value={120}>2 horas antes</option>
+                        <option value={1440}>1 dia antes</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Buttons */}
