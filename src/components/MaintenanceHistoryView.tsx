@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MaintenanceLog, Equipment, Client, CompanySettings, MaintenanceType } from '../types';
 import { formatDateBR } from '../utils/formatters';
+import { BrandLogo } from './BrandLogo';
 
 interface MaintenanceHistoryViewProps {
   maintenanceLogs: MaintenanceLog[];
@@ -48,7 +49,7 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
   // Form states
   const [formEquipmentId, setFormEquipmentId] = useState<string>('');
   const [formDate, setFormDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [formTechnicianName, setFormTechnicianName] = useState<string>(companySettings.technicianResponsible || 'Marcos Vinícius Barbosa');
+  const [formTechnicianName, setFormTechnicianName] = useState<string>(companySettings.technicianResponsible || 'Wellisson Medeiros');
   const [formType, setFormType] = useState<MaintenanceType>('Preventiva');
   const [formDescription, setFormDescription] = useState<string>('');
   const [formWorkPerformed, setFormWorkPerformed] = useState<string[]>([
@@ -81,7 +82,7 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
     setFormEquipmentId(equip?.id || '');
     setFormGasType(equip?.gasType || 'R-410A');
     setFormDate(new Date().toISOString().slice(0, 10));
-    setFormTechnicianName(companySettings.technicianResponsible || 'Marcos Vinícius Barbosa');
+    setFormTechnicianName(companySettings.technicianResponsible || 'Wellisson Medeiros');
     setFormType('Preventiva');
     setFormDescription('Manutenção preventiva periódica e revisão operacional');
     setFormWorkPerformed([
@@ -827,7 +828,10 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
               {/* Header */}
               <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                 <div>
-                  <h2 className="text-lg font-black text-slate-900">{companySettings.companyName}</h2>
+                  <div className="mb-2">
+                    <BrandLogo size="md" theme="light" />
+                  </div>
+                  <h2 className="text-xs font-bold text-slate-800 uppercase">{companySettings.companyName}</h2>
                   <p className="text-slate-600">CNPJ: {companySettings.cnpj} • {companySettings.phone}</p>
                   <p className="text-slate-600">{companySettings.address}</p>
                 </div>

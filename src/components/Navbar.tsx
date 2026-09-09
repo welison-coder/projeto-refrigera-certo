@@ -7,9 +7,13 @@ import {
   LayoutDashboard,
   Building2,
   Download,
-  PlusCircle
+  PlusCircle,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import { CompanySettings } from '../types';
+import { BrandLogo } from './BrandLogo';
+import { useAuth } from '../contexts/AuthContext';
 
 export type ActiveTab = 'dashboard' | 'visits' | 'quotes' | 'maintenance' | 'clients';
 
@@ -32,36 +36,33 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewQuote,
   onExportBackup
 }) => {
+  const { userProfile, currentUser, logout } = useAuth();
+
+  const displayName = userProfile?.name || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Técnico';
+  const displayRole = userProfile?.role === 'admin' ? 'Administrador' : 'Técnico';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0].toUpperCase())
+    .join('') || 'TC';
+
   return (
     <header className="sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800 shadow-md no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-sm ring-2 ring-sky-400/30">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                {/* Custom Snowflake + Thermometer refrigeration icon */}
-                <path d="M12 2v20" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                <path d="m4.93 4.93 4.24 4.24" />
-                <path d="m14.83 14.83 4.24 4.24" />
-                <path d="m14.83 9.17 4.24-4.24" />
-                <path d="m4.93 19.07 4.24-4.24" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg tracking-tight text-white font-sans">
-                  {companySettings.tradeName || 'Refrigera Certo'}
-                </span>
-                <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                  Pro
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 hidden sm:block">
-                Climatização & Refrigeração
-              </p>
+          {/* Official Logo & Brand */}
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => setActiveTab('dashboard')}
+            title="Ir para o Painel Principal - Refrigera Certo"
+          >
+            <div className="bg-white px-3 py-1.5 rounded-xl shadow-xs border border-white/20 flex items-center gap-2 group-hover:bg-sky-50 transition-colors">
+              <BrandLogo size="sm" theme="light" />
+              <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 hidden sm:inline-block">
+                Pro
+              </span>
             </div>
           </div>
 
@@ -172,11 +173,43 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Download className="w-5 h-5" />
             </button>
+
+            {/* User Profile & Logout */}
+            <div className="h-6 w-px bg-slate-800 mx-1 hidden sm:block" />
+
+            <div className="flex items-center gap-2 pl-1">
+              <div
+                className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/60"
+                title={`${displayName} - ${displayRole}`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-sky-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                  {initials}
+                </div>
+                <div className="hidden xl:block text-left leading-tight">
+                  <p className="text-xs font-semibold text-slate-200 max-w-[120px] truncate">
+                    {displayName}
+                  </p>
+                  <p className="text-[10px] text-sky-400 font-medium">
+                    {displayRole}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                id="btn-logout"
+                onClick={() => logout()}
+                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                title="Sair do Sistema (Logout)"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
         </div>
 
         {/* Mobile Navigation Row */}
+
         <div className="flex md:hidden items-center justify-around py-2 border-t border-slate-800 overflow-x-auto gap-1">
           <button
             onClick={() => setActiveTab('dashboard')}
@@ -217,6 +250,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             Clientes
+          </button>
+          <button
+            onClick={() => logout()}
+            className="px-2.5 py-1.5 rounded-md text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-slate-800 whitespace-nowrap flex items-center gap-1 cursor-pointer"
+            title="Sair do Sistema"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sair</span>
           </button>
         </div>
       </div>

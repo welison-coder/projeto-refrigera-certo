@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import {
   Client,
   Equipment,
@@ -16,8 +17,12 @@ import { MaintenanceHistoryView } from './components/MaintenanceHistoryView';
 import { ClientsEquipmentView } from './components/ClientsEquipmentView';
 import { CompanyModal } from './components/CompanyModal';
 import { ReminderModal } from './components/ReminderModal';
+import { BrandLogo } from './components/BrandLogo';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginScreen } from './components/LoginScreen';
 
-export default function App() {
+function MainApp() {
+  const { currentUser, userProfile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   // Core state from storage
@@ -62,6 +67,27 @@ export default function App() {
   useEffect(() => {
     storage.saveCompanySettings(companySettings);
   }, [companySettings]);
+
+  // Loading state while checking Firebase Auth session
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="p-4 rounded-2xl bg-white shadow-xl mb-4">
+          <BrandLogo size="md" theme="light" />
+        </div>
+        <div className="flex items-center gap-2 text-sky-400 font-medium text-sm">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Iniciando ambiente seguro...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated: present login & signup screen
+  if (!currentUser && !userProfile) {
+    return <LoginScreen />;
+  }
+
 
   // Reload all data
   const handleReloadAllData = () => {
@@ -226,7 +252,7 @@ export default function App() {
       equipmentIds: [],
       date: new Date().toISOString().slice(0, 10),
       timeWindow: '08:30 - 10:30',
-      technicianName: companySettings.technicianResponsible || 'Marcos Vinícius Barbosa',
+      technicianName: companySettings.technicianResponsible || 'Wellisson Medeiros',
       serviceType: 'Execução de Orçamento Aprovado',
       reportedIssue: `Execução dos itens do orçamento ${quote.number} (${quote.equipmentDescription})`,
       status: 'Agendada',
@@ -328,13 +354,17 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="no-print border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>
-            © {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Refrigera Certo'}</strong> — Sistema Profissional para Climatização & Refrigeração
-          </p>
+      <footer className="no-print border-t border-slate-200 bg-white py-6 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <BrandLogo size="xs" theme="light" />
+            <span className="text-slate-300 hidden sm:inline">•</span>
+            <p>
+              © {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Refrigera Certo'}</strong> — Climatização Especializada
+            </p>
+          </div>
           <p className="text-[11px] text-slate-400">
-            Responsável Técnico: {companySettings.technicianResponsible} ({companySettings.technicalRegistration})
+            Responsável Técnico: <strong className="text-slate-600">{companySettings.technicianResponsible}</strong>
           </p>
         </div>
       </footer>
@@ -360,3 +390,12 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
+  );
+}
+

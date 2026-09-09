@@ -13,11 +13,17 @@ import {
   Trash2,
   Edit2,
   Bell,
-  Smartphone
+  Smartphone,
+  Navigation,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { TechnicalVisit, VisitStatus, Client, Equipment, CompanySettings } from '../types';
 import { formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
 import { generateGoogleCalendarUrl, downloadICSFile } from '../utils/calendarReminder';
+import { RouteButton } from './RouteButton';
+import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 
 interface VisitsViewProps {
   visits: TechnicalVisit[];
@@ -51,11 +57,12 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   const [formClientId, setFormClientId] = useState<string>('');
   const [formClientName, setFormClientName] = useState<string>('');
   const [formClientPhone, setFormClientPhone] = useState<string>('');
+  const [formClientCep, setFormClientCep] = useState<string>('');
   const [formClientAddress, setFormClientAddress] = useState<string>('');
   const [formEquipmentIds, setFormEquipmentIds] = useState<string[]>([]);
   const [formDate, setFormDate] = useState<string>('2026-09-03');
   const [formTimeWindow, setFormTimeWindow] = useState<string>('08:30 - 10:30');
-  const [formTechnicianName, setFormTechnicianName] = useState<string>(companySettings.technicianResponsible || 'Marcos Vinícius Barbosa');
+  const [formTechnicianName, setFormTechnicianName] = useState<string>(companySettings.technicianResponsible || 'Wellisson Medeiros');
   const [formServiceType, setFormServiceType] = useState<string>('Higienização e Limpeza Química');
   const [formReportedIssue, setFormReportedIssue] = useState<string>('');
   const [formStatus, setFormStatus] = useState<VisitStatus>('Agendada');
@@ -64,26 +71,90 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   const [formReminderChannel, setFormReminderChannel] = useState<'google' | 'ics' | 'modal'>('google');
   const [formReminderMinutes, setFormReminderMinutes] = useState<number>(60);
 
+  // CEP lookup states
+  const [isSearchingCep, setIsSearchingCep] = useState<boolean>(false);
+  const [cepStatus, setCepStatus] = useState<{
+    type: 'idle' | 'loading' | 'success' | 'error';
+    message?: string;
+  }>({ type: 'idle' });
+
+  const performVisitCepLookup = async (digitsToSearch?: string) => {
+    const rawValue = digitsToSearch !== undefined ? digitsToSearch : formClientCep;
+    const digits = cleanCEP(rawValue);
+    if (digits.length !== 8) {
+      setCepStatus({ type: 'error', message: 'Digite 8 dígitos para consultar o CEP.' });
+      return;
+    }
+
+    setIsSearchingCep(true);
+    setCepStatus({ type: 'loading', message: 'Buscando endereço pelo CEP...' });
+
+    try {
+      const res = await fetchAddressByCEP(digits);
+      if (res && (res.street || res.neighborhood || res.city)) {
+        const parts = [
+          res.street,
+          res.neighborhood ? `Bairro ${res.neighborhood}` : '',
+          res.cityState
+        ].filter(Boolean);
+        const formattedAddress = parts.join(' - ');
+        
+        setFormClientAddress(formattedAddress ? `${formattedAddress}, CEP ${res.cep}` : formClientAddress);
+        setCepStatus({
+          type: 'success',
+          message: `Endereço localizado: ${res.street || ''} (${res.neighborhood || ''})`
+        });
+      } else {
+        setCepStatus({
+          type: 'error',
+          message: 'CEP não localizado. Digite o endereço manualmente.'
+        });
+      }
+    } catch {
+      setCepStatus({
+        type: 'error',
+        message: 'Não foi possível consultar o CEP agora.'
+      });
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const handleVisitCepChange = (value: string) => {
+    const formatted = formatCEP(value);
+    setFormClientCep(formatted);
+    const digits = cleanCEP(value);
+    if (digits.length === 8) {
+      performVisitCepLookup(digits);
+    } else {
+      setCepStatus({ type: 'idle' });
+    }
+  };
+
   const openNewVisitModal = () => {
     setEditingVisit(null);
+    setCepStatus({ type: 'idle' });
     if (clients.length > 0) {
       const first = clients[0];
       setFormClientId(first.id);
       setFormClientName(first.name);
       setFormClientPhone(first.phone);
-      setFormClientAddress(`${first.address.street}, ${first.address.number} - ${first.address.neighborhood}`);
+      setFormClientCep(first.address.zipCode || '');
+      const addrWithCep = `${first.address.street}, ${first.address.number} - ${first.address.neighborhood}${first.address.city ? `, ${first.address.city}` : ''}${first.address.zipCode ? `, CEP ${first.address.zipCode}` : ''}`;
+      setFormClientAddress(addrWithCep);
       const clientEquip = equipment.filter(e => e.clientId === first.id);
       setFormEquipmentIds(clientEquip.length > 0 ? [clientEquip[0].id] : []);
     } else {
       setFormClientId('');
       setFormClientName('');
       setFormClientPhone('');
+      setFormClientCep('');
       setFormClientAddress('');
       setFormEquipmentIds([]);
     }
     setFormDate(new Date().toISOString().slice(0, 10));
     setFormTimeWindow('08:30 - 10:30');
-    setFormTechnicianName(companySettings.technicianResponsible || 'Marcos Vinícius Barbosa');
+    setFormTechnicianName(companySettings.technicianResponsible || 'Wellisson Medeiros');
     setFormServiceType('Higienização e Limpeza Química');
     setFormReportedIssue('');
     setFormStatus('Agendada');
@@ -93,9 +164,11 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
 
   const openEditVisitModal = (visit: TechnicalVisit) => {
     setEditingVisit(visit);
+    setCepStatus({ type: 'idle' });
     setFormClientId(visit.clientId);
     setFormClientName(visit.clientName);
     setFormClientPhone(visit.clientPhone);
+    setFormClientCep(visit.clientCep || '');
     setFormClientAddress(visit.clientAddress);
     setFormEquipmentIds(visit.equipmentIds || []);
     setFormDate(visit.date);
@@ -114,7 +187,9 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
     if (selected) {
       setFormClientName(selected.name);
       setFormClientPhone(selected.phone);
-      setFormClientAddress(`${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}`);
+      setFormClientCep(selected.address.zipCode || '');
+      const addrWithCep = `${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}${selected.address.city ? `, ${selected.address.city}` : ''}${selected.address.zipCode ? `, CEP ${selected.address.zipCode}` : ''}`;
+      setFormClientAddress(addrWithCep);
       const clientEquip = equipment.filter(e => e.clientId === selected.id);
       setFormEquipmentIds(clientEquip.length > 0 ? [clientEquip[0].id] : []);
     }
@@ -134,6 +209,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       clientName: formClientName,
       clientPhone: formClientPhone,
       clientAddress: formClientAddress,
+      clientCep: formClientCep.trim() || undefined,
       equipmentIds: formEquipmentIds,
       date: formDate,
       timeWindow: formTimeWindow,
@@ -299,13 +375,31 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Client & Address */}
+                  {/* Client & Address with 1-click GPS route */}
                   <div>
                     <h3 className="font-bold text-base text-slate-900 leading-snug">{visit.clientName}</h3>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{visit.clientAddress}</span>
-                    </p>
+                    <div className="flex items-start gap-1.5 mt-1 text-xs text-slate-600">
+                      <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                      <div className="flex flex-col">
+                        <a
+                          href={getGoogleMapsRouteUrl(visit.clientAddress, visit.clientCep)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline hover:text-sky-700 decoration-sky-400 transition-colors leading-relaxed"
+                          title="Clique para abrir rota GPS para este endereço"
+                        >
+                          {visit.clientAddress}
+                        </a>
+                        {visit.clientCep && (
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 border border-sky-200 text-sky-800 text-[10px] font-mono font-semibold">
+                              CEP: {visit.clientCep}
+                            </span>
+                            <span className="text-[10px] text-emerald-600 font-medium">● Rota Otimizada</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Service Details */}
@@ -347,6 +441,14 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                 {/* Card Footer Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
+                    {/* 1-Click GPS Navigation Button with CEP */}
+                    <RouteButton
+                      address={visit.clientAddress}
+                      cep={visit.clientCep}
+                      size="sm"
+                      variant="primary"
+                    />
+
                     {/* WhatsApp confirmation button */}
                     <a
                       href={waLink}
@@ -466,19 +568,93 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                 </div>
               </div>
 
-              {/* Address */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Endereço do Local de Atendimento *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formClientAddress}
-                  onChange={(e) => setFormClientAddress(e.target.value)}
-                  placeholder="Rua, número, bairro, cidade"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500"
-                />
+              {/* Address block with CEP search & auto-completion */}
+              <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/90 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-sky-600" />
+                    Localização da Visita Técnica
+                  </label>
+                  {formClientAddress.trim() && (
+                    <a
+                      href={getGoogleMapsRouteUrl(formClientAddress, formClientCep)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                      title="Testar rota no aplicativo de navegação"
+                    >
+                      <Navigation className="w-3 h-3" /> Testar Rota GPS
+                    </a>
+                  )}
+                </div>
+
+                {/* CEP Input + Search Button */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    CEP (digite os 8 dígitos para preencher o endereço automaticamente)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={formClientCep}
+                        onChange={(e) => handleVisitCepChange(e.target.value)}
+                        placeholder="Ex: 01451-001"
+                        maxLength={9}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-sky-500 bg-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isSearchingCep}
+                      onClick={() => performVisitCepLookup()}
+                      className="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      title="Buscar endereço pelo CEP"
+                    >
+                      {isSearchingCep ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Buscando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-3.5 h-3.5" />
+                          <span>Buscar CEP</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Feedback message */}
+                  {cepStatus.message && (
+                    <div className={`mt-1.5 flex items-center gap-1.5 text-xs ${
+                      cepStatus.type === 'success'
+                        ? 'text-emerald-700 font-medium'
+                        : cepStatus.type === 'error'
+                        ? 'text-rose-600'
+                        : 'text-sky-700'
+                    }`}>
+                      {cepStatus.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                      {cepStatus.type === 'error' && <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />}
+                      {cepStatus.type === 'loading' && <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 shrink-0" />}
+                      <span>{cepStatus.message}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Endereço Completo do Atendimento *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formClientAddress}
+                    onChange={(e) => setFormClientAddress(e.target.value)}
+                    placeholder="Rua, número, bairro, cidade"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
+                  />
+                </div>
               </div>
 
               {/* Date & Time Window */}

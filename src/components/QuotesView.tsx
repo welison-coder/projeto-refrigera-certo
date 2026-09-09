@@ -12,10 +12,19 @@ import {
   CalendarCheck,
   Building2,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  MapPin,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Navigation
 } from 'lucide-react';
 import { Quote, QuoteItem, QuoteStatus, Client, CompanySettings, TechnicalVisit } from '../types';
 import { formatCurrency, formatDateBR, createWhatsAppLink, generateQuoteWhatsAppMessage } from '../utils/formatters';
+import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { BrandLogo } from './BrandLogo';
+import { RouteButton } from './RouteButton';
+import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 
 interface QuotesViewProps {
   quotes: Quote[];
@@ -51,6 +60,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   const [formClientName, setFormClientName] = useState<string>('');
   const [formClientPhone, setFormClientPhone] = useState<string>('');
   const [formClientEmail, setFormClientEmail] = useState<string>('');
+  const [formClientCep, setFormClientCep] = useState<string>('');
   const [formClientAddress, setFormClientAddress] = useState<string>('');
   const [formClientDocument, setFormClientDocument] = useState<string>('');
   const [formEquipmentDescription, setFormEquipmentDescription] = useState<string>('');
@@ -62,21 +72,84 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   const [formTechnicianObservations, setFormTechnicianObservations] = useState<string>('');
   const [formStatus, setFormStatus] = useState<QuoteStatus>('Enviado');
 
+  // CEP lookup states
+  const [isSearchingCep, setIsSearchingCep] = useState<boolean>(false);
+  const [cepStatus, setCepStatus] = useState<{
+    type: 'idle' | 'loading' | 'success' | 'error';
+    message?: string;
+  }>({ type: 'idle' });
+
+  const performQuoteCepLookup = async (digitsToSearch?: string) => {
+    const rawValue = digitsToSearch !== undefined ? digitsToSearch : formClientCep;
+    const digits = cleanCEP(rawValue);
+    if (digits.length !== 8) {
+      setCepStatus({ type: 'error', message: 'Digite 8 dígitos para consultar o CEP.' });
+      return;
+    }
+
+    setIsSearchingCep(true);
+    setCepStatus({ type: 'loading', message: 'Buscando endereço pelo CEP...' });
+
+    try {
+      const res = await fetchAddressByCEP(digits);
+      if (res && (res.street || res.neighborhood || res.city)) {
+        const parts = [
+          res.street,
+          res.neighborhood ? `Bairro ${res.neighborhood}` : '',
+          res.cityState
+        ].filter(Boolean);
+        const formattedAddress = parts.join(' - ');
+        
+        setFormClientAddress(formattedAddress ? `${formattedAddress}, CEP ${res.cep}` : formClientAddress);
+        setCepStatus({
+          type: 'success',
+          message: `Endereço localizado: ${res.street || ''} (${res.neighborhood || ''})`
+        });
+      } else {
+        setCepStatus({
+          type: 'error',
+          message: 'CEP não localizado. Digite o endereço manualmente.'
+        });
+      }
+    } catch {
+      setCepStatus({
+        type: 'error',
+        message: 'Não foi possível consultar o CEP agora.'
+      });
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const handleQuoteCepChange = (value: string) => {
+    const formatted = formatCEP(value);
+    setFormClientCep(formatted);
+    const digits = cleanCEP(value);
+    if (digits.length === 8) {
+      performQuoteCepLookup(digits);
+    } else {
+      setCepStatus({ type: 'idle' });
+    }
+  };
+
   const openNewQuoteModal = () => {
     setEditingQuote(null);
+    setCepStatus({ type: 'idle' });
     if (clients.length > 0) {
       const first = clients[0];
       setFormClientId(first.id);
       setFormClientName(first.name);
       setFormClientPhone(first.phone);
       setFormClientEmail(first.email);
-      setFormClientAddress(`${first.address.street}, ${first.address.number} - ${first.address.neighborhood}, ${first.address.city}`);
+      setFormClientCep(first.address.zipCode || '');
+      setFormClientAddress(`${first.address.street}, ${first.address.number} - ${first.address.neighborhood}, ${first.address.city}${first.address.zipCode ? `, CEP ${first.address.zipCode}` : ''}`);
       setFormClientDocument(first.document);
     } else {
       setFormClientId('');
       setFormClientName('');
       setFormClientPhone('');
       setFormClientEmail('');
+      setFormClientCep('');
       setFormClientAddress('');
       setFormClientDocument('');
     }
@@ -112,10 +185,12 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
 
   const openEditQuoteModal = (quote: Quote) => {
     setEditingQuote(quote);
+    setCepStatus({ type: 'idle' });
     setFormClientId(quote.clientId);
     setFormClientName(quote.clientName);
     setFormClientPhone(quote.clientPhone);
     setFormClientEmail(quote.clientEmail);
+    setFormClientCep(quote.clientCep || '');
     setFormClientAddress(quote.clientAddress);
     setFormClientDocument(quote.clientDocument);
     setFormEquipmentDescription(quote.equipmentDescription);
@@ -136,7 +211,8 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       setFormClientName(selected.name);
       setFormClientPhone(selected.phone);
       setFormClientEmail(selected.email);
-      setFormClientAddress(`${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}, ${selected.address.city}`);
+      setFormClientCep(selected.address.zipCode || '');
+      setFormClientAddress(`${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}, ${selected.address.city}${selected.address.zipCode ? `, CEP ${selected.address.zipCode}` : ''}`);
       setFormClientDocument(selected.document);
     }
   };
@@ -202,6 +278,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       clientPhone: formClientPhone,
       clientEmail: formClientEmail,
       clientAddress: formClientAddress,
+      clientCep: formClientCep.trim() || undefined,
       clientDocument: formClientDocument,
       equipmentDescription: formEquipmentDescription,
       items: formItems,
@@ -251,7 +328,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Emissão de Orçamentos Comerciais</h1>
           <p className="text-slate-500 text-sm">
-            Gere orçamentos discriminados para climatização e refrigeração com validade e garantia legal.
+            Gere orçamentos discriminados para climatização e sistemas de ar condicionado com validade e garantia legal.
           </p>
         </div>
 
@@ -351,6 +428,20 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                     <p className="text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
                       ❄️ {quote.equipmentDescription}
                     </p>
+                    {quote.clientAddress && (
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-sky-600 shrink-0" />
+                          <span className="truncate">{quote.clientAddress}</span>
+                        </p>
+                        <RouteButton
+                          address={quote.clientAddress}
+                          cep={quote.clientCep}
+                          size="sm"
+                          variant="outline"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Items summary */}
@@ -530,17 +621,89 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Endereço de Instalação / Local da Obra
-                  </label>
-                  <input
-                    type="text"
-                    value={formClientAddress}
-                    onChange={(e) => setFormClientAddress(e.target.value)}
-                    placeholder="Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
-                  />
+                {/* Address block with CEP search & auto-fill */}
+                <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-sky-600" />
+                      Endereço de Instalação / Obra
+                    </label>
+                    {formClientAddress.trim() && (
+                      <a
+                        href={getGoogleMapsRouteUrl(formClientAddress, formClientCep)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                        title="Testar rota no aplicativo de navegação"
+                      >
+                        <Navigation className="w-3 h-3" /> Testar GPS
+                      </a>
+                    )}
+                  </div>
+
+                  {/* CEP Input */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      CEP (digite os 8 dígitos para buscar o endereço automaticamente)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={formClientCep}
+                        onChange={(e) => handleQuoteCepChange(e.target.value)}
+                        placeholder="Ex: 01451-001"
+                        maxLength={9}
+                        className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono bg-white focus:ring-2 focus:ring-sky-500"
+                      />
+                      <button
+                        type="button"
+                        disabled={isSearchingCep}
+                        onClick={() => performQuoteCepLookup()}
+                        className="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Buscar endereço pelo CEP"
+                      >
+                        {isSearchingCep ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Buscando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-3.5 h-3.5" />
+                            <span>Buscar CEP</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {cepStatus.message && (
+                      <div className={`mt-1.5 flex items-center gap-1.5 text-xs ${
+                        cepStatus.type === 'success'
+                          ? 'text-emerald-700 font-medium'
+                          : cepStatus.type === 'error'
+                          ? 'text-rose-600'
+                          : 'text-sky-700'
+                      }`}>
+                        {cepStatus.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                        {cepStatus.type === 'error' && <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />}
+                        {cepStatus.type === 'loading' && <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 shrink-0" />}
+                        <span>{cepStatus.message}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Endereço Completo de Instalação / Local da Obra
+                    </label>
+                    <input
+                      type="text"
+                      value={formClientAddress}
+                      onChange={(e) => setFormClientAddress(e.target.value)}
+                      placeholder="Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -554,7 +717,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                   required
                   value={formEquipmentDescription}
                   onChange={(e) => setFormEquipmentDescription(e.target.value)}
-                  placeholder="Ex: 02x Split Cassete Carrier 36.000 BTU / 01x Câmara Fria Elgin 3.5HP"
+                  placeholder="Ex: 02x Split Cassete Carrier 36.000 BTU / 01x VRF Inverter 10 HP"
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500"
                 />
               </div>
@@ -847,16 +1010,14 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
               {/* Document Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-slate-900 pb-6 gap-4">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold">
-                      RC
-                    </div>
-                    <h2 className="text-xl font-black tracking-tight text-slate-900">
-                      {companySettings.companyName}
-                    </h2>
+                  <div className="mb-2">
+                    <BrandLogo size="lg" theme="light" showSubtitle={true} />
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    CNPJ: {companySettings.cnpj} • Reg. Técnico: {companySettings.technicalRegistration}
+                  <h2 className="text-xs font-bold tracking-tight text-slate-800 uppercase">
+                    {companySettings.companyName}
+                  </h2>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    CNPJ: {companySettings.cnpj}
                   </p>
                   <p className="text-xs text-slate-600">
                     {companySettings.address}
@@ -880,7 +1041,25 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                   <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Destinatário / Cliente</p>
                   <p className="font-bold text-slate-900 text-sm">{previewQuote.clientName}</p>
                   {previewQuote.clientDocument && <p className="text-slate-600">Doc: {previewQuote.clientDocument}</p>}
-                  <p className="text-slate-600">{previewQuote.clientAddress}</p>
+                  <div className="text-slate-600 flex items-start gap-1.5 my-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5 print:hidden" />
+                    <div>
+                      <a
+                        href={getGoogleMapsRouteUrl(previewQuote.clientAddress, previewQuote.clientCep)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline hover:text-sky-700 decoration-sky-400 print:no-underline print:text-slate-600"
+                        title="Abrir rota no aplicativo de navegação"
+                      >
+                        {previewQuote.clientAddress}
+                      </a>
+                      {previewQuote.clientCep && (
+                        <span className="block text-[11px] font-mono text-slate-500 mt-0.5">
+                          CEP: {previewQuote.clientCep}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-slate-600">Tel: {previewQuote.clientPhone}</p>
                   {previewQuote.clientEmail && <p className="text-slate-600">E-mail: {previewQuote.clientEmail}</p>}
                 </div>
@@ -988,7 +1167,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
               <div className="pt-10 grid grid-cols-2 gap-8 text-center text-xs">
                 <div className="border-t border-slate-400 pt-2">
                   <p className="font-bold text-slate-800">{companySettings.technicianResponsible}</p>
-                  <p className="text-slate-500">Refrigera Certo • {companySettings.technicalRegistration}</p>
+                  <p className="text-slate-500">{companySettings.tradeName || 'Refrigera Certo'} • Responsável Técnico</p>
                 </div>
 
                 <div className="border-t border-slate-400 pt-2">

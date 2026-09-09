@@ -12,10 +12,12 @@ import {
   MapPin,
   User,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Navigation
 } from 'lucide-react';
 import { TechnicalVisit, CompanySettings } from '../types';
 import { formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
+import { getGoogleMapsRouteUrl, getWazeRouteUrl, getAppleMapsRouteUrl, getAndroidGeoUrl, isIOS } from '../utils/navigation';
 import {
   generateGoogleCalendarUrl,
   downloadICSFile,
@@ -138,10 +140,70 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
             <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span>Técnico: <strong>{visit.technicianName}</strong></span>
           </p>
-          <p className="text-slate-500 flex items-center gap-1.5 truncate">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{visit.clientAddress}</span>
+          <p className="text-slate-600 flex items-center gap-1.5 truncate">
+            <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+            <a
+              href={getGoogleMapsRouteUrl(visit.clientAddress, visit.clientCep)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="truncate hover:underline hover:text-sky-700 decoration-sky-400"
+              title="Abrir rota no aplicativo de navegação"
+            >
+              {visit.clientAddress}
+            </a>
           </p>
+        </div>
+
+        {/* GPS Navigation 1-Click Section */}
+        <div className="mb-4 p-3 rounded-xl bg-sky-50/70 border border-sky-200/80">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-sky-950 flex items-center gap-1.5">
+              <Navigation className="w-3.5 h-3.5 text-sky-600" />
+              Navegar até o Cliente (Rota no GPS)
+            </span>
+            <span className="text-[10px] text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-semibold">1 Toque no Celular</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <a
+              id="btn-navigate-google-maps"
+              href={getGoogleMapsRouteUrl(visit.clientAddress, visit.clientCep)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-semibold shadow-2xs transition-colors"
+              title="Abrir rota imediatamente no Google Maps"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Google Maps</span>
+            </a>
+            <a
+              id="btn-navigate-waze"
+              href={getWazeRouteUrl(visit.clientAddress, visit.clientCep)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 active:bg-cyan-800 text-white text-xs font-semibold shadow-2xs transition-colors"
+              title="Abrir navegação imediatamente no Waze"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Waze GPS</span>
+            </a>
+            <a
+              id="btn-navigate-alt-maps"
+              href={isIOS() ? getAppleMapsRouteUrl(visit.clientAddress, visit.clientCep) : getAndroidGeoUrl(visit.clientAddress, visit.clientCep)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white text-xs font-semibold shadow-2xs transition-colors"
+              title={isIOS() ? "Abrir rota no Apple Maps (iPhone)" : "Abrir no GPS Padrão do Celular (Android)"}
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>{isIOS() ? 'Apple Maps' : 'GPS do Celular'}</span>
+            </a>
+          </div>
+          {visit.clientCep && (
+            <div className="mt-2 text-[10px] text-sky-800/80 font-mono bg-sky-100/50 px-2 py-0.5 rounded flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"></span>
+              <span>Destino indexado com CEP: {visit.clientCep}</span>
+            </div>
+          )}
         </div>
 
         {/* Alarm Offset Select */}

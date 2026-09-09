@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" width="420" height="90" fill="none">
+  <!-- Refrigera Certo Official Brand Logo -->
+  <g transform="translate(10, 5)">
+    <!-- Symbol: Stylized C with Central Snowflake (diameter ~ 80px, center at 40,40) -->
+    <g transform="translate(40, 40)">
+      <!-- Outer Stylized Dark Navy Segments (forming dynamic circular framing / stylized 'C') -->
+      <!-- Top Arc / Wedge -->
+      <path d="M -30,-22 C -18,-35 -2,-39 12,-37 C 14,-34 14,-29 10,-26 C -2,-28 -14,-24 -24,-14 Z" fill="#161354" />
+      <!-- Left Outer Crescent Arc -->
+      <path d="M -32,-19 C -38,-7 -38,7 -32,19 C -36,15 -39,5 -39,0 C -39,-5 -36,-15 -32,-19 Z" fill="#161354" />
+      <path d="M -25,-26 C -37,-12 -37,12 -25,26 C -28,21 -31,11 -31,0 C -31,-11 -28,-21 -25,-26 Z" fill="#161354" />
+      <!-- Bottom Arc / Wedge -->
+      <path d="M -30,22 C -18,35 -2,39 12,37 C 14,34 14,29 10,26 C -2,28 -14,24 -24,14 Z" fill="#161354" />
+      <!-- Top Right Terminal -->
+      <path d="M 16,-36 C 26,-33 34,-24 37,-14 C 33,-13 28,-14 26,-18 C 23,-25 18,-31 16,-36 Z" fill="#161354" />
+      <!-- Bottom Right Terminal -->
+      <path d="M 16,36 C 26,33 34,24 37,14 C 33,13 28,14 26,18 C 23,25 18,31 16,36 Z" fill="#161354" />
+
+      <!-- Central Snowflake: 8 Diamond Petals in Bright Cyan (#00a6e8) -->
+      <!-- Vertical and Horizontal Ray Petals -->
+      <!-- Top Ray -->
+      <path d="M 0,-6 L 4.5,-18 L 0,-30 L -4.5,-18 Z" fill="#00a6e8" />
+      <!-- Bottom Ray -->
+      <path d="M 0,6 L 4.5,18 L 0,30 L -4.5,18 Z" fill="#00a6e8" />
+      <!-- Left Ray -->
+      <path d="M -6,0 L -18,4.5 L -30,0 L -18,-4.5 Z" fill="#00a6e8" />
+      <!-- Right Ray -->
+      <path d="M 6,0 L 18,4.5 L 30,0 L 18,-4.5 Z" fill="#00a6e8" />
+
+      <!-- Diagonal Ray Petals -->
+      <!-- Top-Right -->
+      <path d="M 4.2,-4.2 L 15.9,-8.9 L 21.2,-21.2 L 8.9,-15.9 Z" fill="#00a6e8" />
+      <!-- Top-Left -->
+      <path d="M -4.2,-4.2 L -8.9,-15.9 L -21.2,-21.2 L -15.9,-8.9 Z" fill="#00a6e8" />
+      <!-- Bottom-Left -->
+      <path d="M -4.2,4.2 L -15.9,8.9 L -21.2,21.2 L -8.9,15.9 Z" fill="#00a6e8" />
+      <!-- Bottom-Right -->
+      <path d="M 4.2,4.2 L 8.9,15.9 L 21.2,21.2 L 15.9,8.9 Z" fill="#00a6e8" />
+
+      <!-- Inner Core Diamond Accent -->
+      <polygon points="0,-4 4,0 0,4 -4,0" fill="#ffffff" />
+    </g>
+
+    <!-- Typography: "Refrigera" (Cyan) + "Certo" (Dark Navy) -->
+    <text x="96" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="800" font-size="38" letter-spacing="-0.5px">
+      <tspan fill="#00a6e8">Refrigera</tspan>
+      <tspan dx="8" fill="#161354">Certo</tspan>
+    </text>
+  </g>
+</svg>

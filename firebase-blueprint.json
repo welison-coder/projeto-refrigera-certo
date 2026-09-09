@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RefrigeraCertoSchema",
+  "description": "Firestore blueprint for Refrigera Certo application",
+  "collections": {
+    "users": {
+      "path": "users/{userId}",
+      "description": "Perfis de usuários técnicos e administradores",
+      "rules": "Usuários autenticados podem ler e criar/atualizar apenas seus próprios registros",
+      "schema": {
+        "type": "object",
+        "required": ["id", "name", "email", "role", "createdAt"],
+        "properties": {
+          "id": { "type": "string", "maxLength": 128 },
+          "name": { "type": "string", "maxLength": 100 },
+          "email": { "type": "string", "maxLength": 150 },
+          "role": { "type": "string", "enum": ["admin", "tecnico", "gerente"] },
+          "createdAt": { "type": "string", "maxLength": 50 }
+        }
+      }
+    }
+  }
+}

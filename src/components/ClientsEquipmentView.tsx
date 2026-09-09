@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Users,
   Wrench,
@@ -12,10 +12,17 @@ import {
   Edit2,
   CalendarDays,
   FileText,
-  Clock
+  Clock,
+  Navigation,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { Client, Equipment, EquipmentStatus } from '../types';
 import { formatDateBR } from '../utils/formatters';
+import { RouteButton } from './RouteButton';
+import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 
 interface ClientsEquipmentViewProps {
   clients: Client[];
@@ -50,11 +57,20 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
   const [clientFormDoc, setClientFormDoc] = useState<string>('');
   const [clientFormPhone, setClientFormPhone] = useState<string>('');
   const [clientFormEmail, setClientFormEmail] = useState<string>('');
+  const [clientFormZipCode, setClientFormZipCode] = useState<string>('');
   const [clientFormStreet, setClientFormStreet] = useState<string>('');
   const [clientFormNumber, setClientFormNumber] = useState<string>('');
   const [clientFormNeighborhood, setClientFormNeighborhood] = useState<string>('');
   const [clientFormCity, setClientFormCity] = useState<string>('São Paulo - SP');
   const [clientFormNotes, setClientFormNotes] = useState<string>('');
+  
+  // CEP lookup state
+  const [isSearchingCep, setIsSearchingCep] = useState<boolean>(false);
+  const [cepStatus, setCepStatus] = useState<{
+    type: 'idle' | 'loading' | 'success' | 'error';
+    message?: string;
+  }>({ type: 'idle' });
+  const numberInputRef = useRef<HTMLInputElement>(null);
 
   // Equipment modal
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState<boolean>(false);
@@ -76,11 +92,13 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setClientFormDoc('');
     setClientFormPhone('');
     setClientFormEmail('');
+    setClientFormZipCode('');
     setClientFormStreet('');
     setClientFormNumber('');
     setClientFormNeighborhood('');
     setClientFormCity('São Paulo - SP');
     setClientFormNotes('');
+    setCepStatus({ type: 'idle' });
     setIsClientModalOpen(true);
   };
 
@@ -90,12 +108,68 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setClientFormDoc(c.document);
     setClientFormPhone(c.phone);
     setClientFormEmail(c.email);
+    setClientFormZipCode(c.address.zipCode || '');
     setClientFormStreet(c.address.street);
     setClientFormNumber(c.address.number);
     setClientFormNeighborhood(c.address.neighborhood);
     setClientFormCity(c.address.city);
     setClientFormNotes(c.notes || '');
+    setCepStatus({ type: 'idle' });
     setIsClientModalOpen(true);
+  };
+
+  const performCepLookup = async (digitsToSearch?: string) => {
+    const rawValue = digitsToSearch !== undefined ? digitsToSearch : clientFormZipCode;
+    const digits = cleanCEP(rawValue);
+    if (digits.length !== 8) {
+      setCepStatus({ type: 'error', message: 'Digite os 8 números do CEP para buscar o endereço.' });
+      return;
+    }
+
+    setIsSearchingCep(true);
+    setCepStatus({ type: 'loading', message: 'Localizando endereço pelo CEP...' });
+
+    try {
+      const result = await fetchAddressByCEP(digits);
+      if (result && (result.street || result.neighborhood || result.city)) {
+        if (result.street) setClientFormStreet(result.street);
+        if (result.neighborhood) setClientFormNeighborhood(result.neighborhood);
+        if (result.cityState) setClientFormCity(result.cityState);
+        setCepStatus({
+          type: 'success',
+          message: `Endereço encontrado: ${result.street || ''} (${result.neighborhood || ''})`
+        });
+        // Automatically focus the number input so technician or manager just enters the number
+        setTimeout(() => {
+          numberInputRef.current?.focus();
+        }, 120);
+      } else {
+        setCepStatus({
+          type: 'error',
+          message: 'CEP não encontrado na base de dados. Preencha o endereço manualmente.'
+        });
+      }
+    } catch {
+      setCepStatus({
+        type: 'error',
+        message: 'Falha na busca online do CEP. Preencha o endereço manualmente.'
+      });
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const handleCepInputChange = (value: string) => {
+    const formatted = formatCEP(value);
+    setClientFormZipCode(formatted);
+    const digits = cleanCEP(value);
+
+    // When the user completes 8 digits, automatically trigger address search!
+    if (digits.length === 8) {
+      performCepLookup(digits);
+    } else {
+      setCepStatus({ type: 'idle' });
+    }
   };
 
   const handleSaveClientSubmit = (e: React.FormEvent) => {
@@ -114,7 +188,8 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
         street: clientFormStreet,
         number: clientFormNumber,
         neighborhood: clientFormNeighborhood,
-        city: clientFormCity
+        city: clientFormCity,
+        zipCode: clientFormZipCode.trim() || undefined
       },
       notes: clientFormNotes,
       createdAt: editingClient ? editingClient.createdAt : new Date().toISOString().slice(0, 10)
@@ -277,6 +352,8 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
           {filteredClients.map((client) => {
             const clientEquipments = equipment.filter(e => e.clientId === client.id);
 
+            const fullAddress = `${client.address.street}, ${client.address.number} - ${client.address.neighborhood}${client.address.city ? `, ${client.address.city}` : ''}${client.address.zipCode ? `, CEP ${client.address.zipCode}` : ''}`;
+
             return (
               <div
                 key={client.id}
@@ -324,10 +401,29 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                         <span>{client.email}</span>
                       </p>
                     )}
-                    <p className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{client.address.street}, {client.address.number} - {client.address.neighborhood}</span>
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                      <div className="flex flex-col">
+                        <a
+                          href={getGoogleMapsRouteUrl(fullAddress, client.address.zipCode)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline hover:text-sky-700 decoration-sky-400 transition-colors leading-relaxed"
+                          title="Clique para abrir rota GPS para este endereço"
+                        >
+                          {client.address.street}, {client.address.number} - {client.address.neighborhood}
+                          {client.address.city && <span className="text-slate-500">, {client.address.city}</span>}
+                        </a>
+                        {client.address.zipCode && (
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 border border-sky-200 text-sky-800 text-[10px] font-mono font-semibold">
+                              CEP: {client.address.zipCode}
+                            </span>
+                            <span className="text-[10px] text-emerald-600 font-medium">● GPS Otimizado</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Registered Equipment for this client */}
@@ -366,21 +462,32 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => onScheduleVisitForClient(client)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold transition-colors"
-                  >
-                    <CalendarDays className="w-3.5 h-3.5" />
-                    <span>Agendar Visita</span>
-                  </button>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {/* 1-Click Route button with CEP for pinpoint accuracy */}
+                    <RouteButton
+                      address={fullAddress}
+                      cep={client.address.zipCode}
+                      size="sm"
+                      variant="primary"
+                    />
+
+                    <button
+                      onClick={() => onScheduleVisitForClient(client)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold transition-colors"
+                      title="Agendar visita técnica para este cliente"
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      <span>Agendar</span>
+                    </button>
+                  </div>
 
                   <button
                     onClick={() => onNewQuoteForClient(client)}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Novo Orçamento</span>
+                    <span>Orçamento</span>
                   </button>
                 </div>
 
@@ -524,45 +631,117 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-2">
-                  <label className="block font-semibold text-slate-700 mb-1">Rua / Logradouro</label>
-                  <input
-                    type="text"
-                    value={clientFormStreet}
-                    onChange={(e) => setClientFormStreet(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                  />
+              {/* Address block with CEP search & auto-completion */}
+              <div className="p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-sky-600" />
+                    Endereço do Cliente & Rota GPS
+                  </span>
+                  <span className="text-[11px] text-sky-700 font-medium">
+                    Preenchimento automático
+                  </span>
                 </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Número</label>
-                  <input
-                    type="text"
-                    value={clientFormNumber}
-                    onChange={(e) => setClientFormNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2">
+                {/* CEP Input with Mask and Auto-fetch */}
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Bairro</label>
-                  <input
-                    type="text"
-                    value={clientFormNeighborhood}
-                    onChange={(e) => setClientFormNeighborhood(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                  />
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    CEP (digite os 8 dígitos para buscar)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={clientFormZipCode}
+                        onChange={(e) => handleCepInputChange(e.target.value)}
+                        placeholder="Ex: 01451-001"
+                        maxLength={9}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isSearchingCep}
+                      onClick={() => performCepLookup()}
+                      className="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      title="Consultar CEP e preencher endereço"
+                    >
+                      {isSearchingCep ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Buscando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-3.5 h-3.5" />
+                          <span>Buscar CEP</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Feedback on CEP search */}
+                  {cepStatus.message && (
+                    <div className={`mt-1.5 flex items-center gap-1.5 text-xs ${
+                      cepStatus.type === 'success'
+                        ? 'text-emerald-700 font-medium'
+                        : cepStatus.type === 'error'
+                        ? 'text-rose-600'
+                        : 'text-sky-700'
+                    }`}>
+                      {cepStatus.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                      {cepStatus.type === 'error' && <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />}
+                      {cepStatus.type === 'loading' && <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 shrink-0" />}
+                      <span>{cepStatus.message}</span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Cidade - UF</label>
-                  <input
-                    type="text"
-                    value={clientFormCity}
-                    onChange={(e) => setClientFormCity(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                  />
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Rua / Logradouro</label>
+                    <input
+                      type="text"
+                      value={clientFormStreet}
+                      onChange={(e) => setClientFormStreet(e.target.value)}
+                      placeholder="Nome da rua ou avenida"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Número *</label>
+                    <input
+                      ref={numberInputRef}
+                      type="text"
+                      value={clientFormNumber}
+                      onChange={(e) => setClientFormNumber(e.target.value)}
+                      placeholder="Ex: 1240"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Bairro</label>
+                    <input
+                      type="text"
+                      value={clientFormNeighborhood}
+                      onChange={(e) => setClientFormNeighborhood(e.target.value)}
+                      placeholder="Bairro"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Cidade - UF</label>
+                    <input
+                      type="text"
+                      value={clientFormCity}
+                      onChange={(e) => setClientFormCity(e.target.value)}
+                      placeholder="Cidade - UF"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -632,11 +811,11 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     <option value="Multi-Split">Multi-Split</option>
                     <option value="Split Cassete">Split Cassete</option>
                     <option value="Piso Teto">Piso Teto</option>
-                    <option value="Câmara Fria Resfriados">Câmara Fria Resfriados</option>
-                    <option value="Câmara Fria Congelados">Câmara Fria Congelados</option>
-                    <option value="Balcão Frigorífico">Balcão Frigorífico</option>
-                    <option value="Chiller">Chiller</option>
-                    <option value="Outro">Outro</option>
+                    <option value="Split Dutado">Split Dutado</option>
+                    <option value="VRF / VRV">VRF / VRV</option>
+                    <option value="Chiller / Fan Coil">Chiller / Fan Coil</option>
+                    <option value="Ar de Janela (ACJ)">Ar de Janela (ACJ)</option>
+                    <option value="Outro (Climatização)">Outro (Climatização)</option>
                   </select>
                 </div>
 

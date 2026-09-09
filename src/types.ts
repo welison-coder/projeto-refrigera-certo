@@ -28,13 +28,13 @@ export interface Equipment {
   id: string;
   clientId: string;
   clientName: string;
-  type: string; // 'Split Hi-Wall', 'Split Inverter', 'Multi-Split', 'Cassete', 'Piso Teto', 'Câmara Fria', 'Chiller', etc.
+  type: string; // 'Split Hi-Wall', 'Split Inverter', 'Multi-Split', 'Split Cassete', 'Piso Teto', 'VRF / VRV', 'Chiller / Fan Coil', etc.
   brand: string; // Daikin, Fujitsu, LG, Carrier, Gree, Elgin, etc.
   model: string;
-  capacity: string; // '12.000 BTU', '18.000 BTU', '2.5 HP', etc.
-  gasType: string; // 'R-410A', 'R-32', 'R-22', 'R-134a', 'R-404A'
+  capacity: string; // '9.000 BTU', '12.000 BTU', '18.000 BTU', '36.000 BTU', '60.000 BTU', etc.
+  gasType: string; // 'R-410A', 'R-32', 'R-22', 'R-134a'
   serialNumber?: string;
-  locationDescription: string; // 'Sala Reunião Diretoria', 'Câmara Frigorífica Principal'
+  locationDescription: string; // 'Sala Reunião Diretoria', 'Auditório Principal', 'Recepção'
   installationDate?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
@@ -48,6 +48,7 @@ export interface TechnicalVisit {
   clientName: string;
   clientPhone: string;
   clientAddress: string;
+  clientCep?: string; // CEP for pinpoint GPS navigation & routing
   equipmentIds: string[];
   date: string; // YYYY-MM-DD
   timeWindow: string; // '08:00 - 10:00', '10:00 - 12:00', '13:30 - 15:30', '15:30 - 18:00'
@@ -79,6 +80,7 @@ export interface Quote {
   clientPhone: string;
   clientEmail: string;
   clientAddress: string;
+  clientCep?: string;
   clientDocument: string;
   equipmentDescription: string;
   items: QuoteItem[];
@@ -130,8 +132,19 @@ export interface CompanySettings {
   phone: string;
   email: string;
   address: string;
+  cep?: string;
   technicianResponsible: string;
-  technicalRegistration: string; // e.g. CFT/CRT ou CREA
+  technicalRegistration?: string;
   pixKey?: string;
   defaultWarranty: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'tecnico' | 'gerente';
+  phone?: string;
+  createdAt: string;
+}
+

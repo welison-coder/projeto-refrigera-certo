@@ -11,11 +11,15 @@ import {
   TrendingUp,
   MapPin,
   CalendarCheck,
-  Bell
+  Bell,
+  Navigation
 } from 'lucide-react';
 import { TechnicalVisit, Quote, Equipment, MaintenanceLog, CompanySettings } from '../types';
 import { formatCurrency, formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
 import { generateGoogleCalendarUrl } from '../utils/calendarReminder';
+import { RouteButton } from './RouteButton';
+import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { BrandLogo } from './BrandLogo';
 
 interface DashboardViewProps {
   visits: TechnicalVisit[];
@@ -73,12 +77,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-semibold mb-3 border border-sky-400/30">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Operação Refrigera Certo em Tempo Real
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <div className="bg-white/95 px-3.5 py-1.5 rounded-xl inline-flex items-center shadow-sm">
+              <BrandLogo size="sm" theme="light" />
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-semibold border border-sky-400/30">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Operação em Tempo Real
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-            Gestão Integrada de Refrigeração & Climatização
+            Gestão Integrada de Climatização
           </h1>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
             Acompanhe a escala dos técnicos em rota, emita orçamentos com valor e garantia técnica expressa, e garanta a fidelização com o histórico das máquinas.
@@ -254,13 +263,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <span>{visit.timeWindow} ({formatDateBR(visit.date)})</span>
                     </p>
 
-                    <p className="text-xs text-slate-500 flex items-center gap-1 truncate max-w-md">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span className="truncate">{visit.clientAddress}</span>
-                    </p>
+                    <div className="text-xs text-slate-500 flex items-center gap-1 truncate max-w-md">
+                      <MapPin className="w-3 h-3 text-sky-600 shrink-0" />
+                      <a
+                        href={getGoogleMapsRouteUrl(visit.clientAddress, visit.clientCep)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="truncate hover:underline hover:text-sky-700 decoration-sky-400"
+                        title="Abrir rota no aplicativo de navegação"
+                      >
+                        {visit.clientAddress}
+                      </a>
+                      {visit.clientCep && (
+                        <span className="shrink-0 px-1.5 py-0.2 rounded bg-sky-100/70 text-sky-800 text-[10px] font-mono font-semibold">
+                          CEP: {visit.clientCep}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                    {/* 1-Click GPS Navigation Button with CEP */}
+                    <RouteButton
+                      address={visit.clientAddress}
+                      cep={visit.clientCep}
+                      size="sm"
+                      variant="primary"
+                    />
+
                     <button
                       type="button"
                       onClick={() => onOpenReminderModal?.(visit, false)}
