@@ -1,20 +1,24 @@
 // ==============================================================================
-// Hostinger Node.js Application Startup File
+// Hostinger Node.js Application Startup File (Compatível com "type": "module")
 // ==============================================================================
-// Este arquivo é o ponto de entrada comum aceito pelo gerenciador Node.js da Hostinger.
-// Ele carrega o servidor de produção compilado em dist/server.cjs (gerado por npm run build).
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
 
-const path = require('path');
-const fs = require('fs');
+// Cria um require seguro dentro do escopo ES Module do Node.js
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const bundlePath = path.resolve(__dirname, 'dist', 'server.cjs');
 
 if (!fs.existsSync(bundlePath)) {
   console.error('[Hostinger Startup Error] O arquivo compilado "dist/server.cjs" não foi encontrado.');
-  console.error('Execute o comando de build antes de iniciar o aplicativo:');
+  console.error('Execute o comando de build no terminal da Hostinger antes de iniciar o aplicativo:');
   console.error('  npm run build');
   process.exit(1);
 }
 
-// Inicia o servidor compilado
+// Carrega o servidor de produção compilado em dist/server.cjs
 require(bundlePath);
