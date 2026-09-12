@@ -8,8 +8,7 @@ import {
   Building2,
   Download,
   PlusCircle,
-  LogOut,
-  UserCheck
+  ShieldCheck
 } from 'lucide-react';
 import { CompanySettings } from '../types';
 import { BrandLogo } from './BrandLogo';
@@ -36,10 +35,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewQuote,
   onExportBackup
 }) => {
-  const { userProfile, currentUser, logout } = useAuth();
+  const { userProfile } = useAuth();
 
-  const displayName = userProfile?.name || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Técnico';
-  const displayRole = userProfile?.role === 'admin' ? 'Administrador' : 'Técnico';
+  const displayName = userProfile?.name || 'Administrador';
+  const displayRole = 'Controle Admin Total';
   const initials = displayName
     .split(' ')
     .filter(Boolean)
@@ -174,35 +173,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Download className="w-5 h-5" />
             </button>
 
-            {/* User Profile & Logout */}
+            {/* Admin Badge */}
             <div className="h-6 w-px bg-slate-800 mx-1 hidden sm:block" />
 
             <div className="flex items-center gap-2 pl-1">
               <div
-                className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/60"
-                title={`${displayName} - ${displayRole}`}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-950/40 border border-emerald-500/30"
+                title="Acesso Aberto com Permissão Total de Administrador"
               >
-                <div className="w-7 h-7 rounded-lg bg-sky-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                  {initials}
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="hidden xl:block text-left leading-tight">
-                  <p className="text-xs font-semibold text-slate-200 max-w-[120px] truncate">
+                  <p className="text-xs font-semibold text-slate-100 max-w-[130px] truncate">
                     {displayName}
                   </p>
-                  <p className="text-[10px] text-sky-400 font-medium">
-                    {displayRole}
+                  <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Controle Admin
                   </p>
                 </div>
               </div>
-
-              <button
-                id="btn-logout"
-                onClick={() => logout()}
-                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
-                title="Sair do Sistema (Logout)"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
             </div>
           </div>
 
@@ -250,14 +241,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             Clientes
-          </button>
-          <button
-            onClick={() => logout()}
-            className="px-2.5 py-1.5 rounded-md text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-slate-800 whitespace-nowrap flex items-center gap-1 cursor-pointer"
-            title="Sair do Sistema"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sair</span>
           </button>
         </div>
       </div>

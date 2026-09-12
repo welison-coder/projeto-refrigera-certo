@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import {
   Client,
   Equipment,
@@ -19,10 +18,9 @@ import { CompanyModal } from './components/CompanyModal';
 import { ReminderModal } from './components/ReminderModal';
 import { BrandLogo } from './components/BrandLogo';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LoginScreen } from './components/LoginScreen';
 
 function MainApp() {
-  const { currentUser, userProfile, loading } = useAuth();
+  const { userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   // Core state from storage
@@ -67,27 +65,6 @@ function MainApp() {
   useEffect(() => {
     storage.saveCompanySettings(companySettings);
   }, [companySettings]);
-
-  // Loading state while checking Firebase Auth session
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <div className="p-4 rounded-2xl bg-white shadow-xl mb-4">
-          <BrandLogo size="md" theme="light" />
-        </div>
-        <div className="flex items-center gap-2 text-sky-400 font-medium text-sm">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Iniciando ambiente seguro...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated: present login & signup screen
-  if (!currentUser && !userProfile) {
-    return <LoginScreen />;
-  }
-
 
   // Reload all data
   const handleReloadAllData = () => {

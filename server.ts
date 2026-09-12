@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -104,6 +105,22 @@ async function startServer() {
     });
   });
 
+  // Dynamic Firebase & App Config endpoint
+  app.get('/api/config', (req, res) => {
+    res.json({
+      firebase: {
+        apiKey: process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || null,
+        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || null,
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || null,
+        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || null,
+        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID || null,
+        appId: process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID || null,
+        firestoreDatabaseId: process.env.VITE_FIRESTORE_DATABASE_ID || process.env.FIRESTORE_DATABASE_ID || null,
+      },
+      environment: process.env.NODE_ENV || 'development',
+    });
+  });
+
   // 404 for unmatched API routes
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: 'Endpoint de API não encontrado.' });
@@ -128,7 +145,27 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      try {
+        let html = fs.readFileSync(indexPath, 'utf-8');
+        const runtimeConfig = {
+          apiKey: process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
+          authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
+          projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
+          storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+          messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
+          appId: process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
+          firestoreDatabaseId: process.env.VITE_FIRESTORE_DATABASE_ID || process.env.FIRESTORE_DATABASE_ID,
+        };
+        // If custom runtime config exists in environment, inject it into HTML head
+        if (runtimeConfig.apiKey || runtimeConfig.projectId) {
+          const script = `<script>window.__RUNTIME_CONFIG__ = ${JSON.stringify(runtimeConfig)};</script>`;
+          html = html.replace('<head>', `<head>\n    ${script}`);
+        }
+        res.send(html);
+      } catch {
+        res.sendFile(indexPath);
+      }
     });
   }
 

@@ -30,80 +30,91 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_DEMO_USER_KEY = 'refrigera_certo_demo_user';
+export const DEFAULT_ADMIN_PROFILE: UserProfile = {
+  id: 'admin-master',
+  name: 'Administrador (Admin)',
+  email: 'admin@refrigeracerto.com.br',
+  role: 'admin',
+  phone: '(11) 98888-7777',
+  createdAt: new Date().toISOString()
+};
+
+const LOCAL_DEMO_USER_KEY = 'refrigera_certo_admin_user';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_DEMO_USER_KEY);
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...parsed, role: 'admin' };
+      }
+      return DEFAULT_ADMIN_PROFILE;
     } catch {
-      return null;
+      return DEFAULT_ADMIN_PROFILE;
     }
   });
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Sync profile from Firestore when user changes
-  const fetchOrCreateUserProfile = async (firebaseUser: User, overrideName?: string, role: 'admin' | 'tecnico' | 'gerente' = 'tecnico') => {
+  const fetchOrCreateUserProfile = async (firebaseUser: User, overrideName?: string) => {
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     try {
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        setUserProfile(data);
+        setUserProfile({ ...data, role: 'admin' });
       } else {
         const newProfile: UserProfile = {
           id: firebaseUser.uid,
-          name: overrideName || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Técnico',
-          email: firebaseUser.email || '',
-          role,
+          name: overrideName || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Administrador',
+          email: firebaseUser.email || 'admin@refrigeracerto.com.br',
+          role: 'admin',
           createdAt: new Date().toISOString()
         };
         try {
           await setDoc(userDocRef, newProfile);
-          setUserProfile(newProfile);
         } catch {
-          // If firestore write fails, still retain profile in memory
-          setUserProfile(newProfile);
+          // Keep in local state
         }
+        setUserProfile(newProfile);
       }
     } catch (err) {
-      console.warn('Could not read user profile from Firestore, using auth fallback', err);
-      setUserProfile({
-        id: firebaseUser.uid,
-        name: overrideName || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Técnico',
-        email: firebaseUser.email || '',
-        role: 'tecnico',
-        createdAt: new Date().toISOString()
-      });
+      console.warn('Fallback para perfil admin local:', err);
+      setUserProfile(DEFAULT_ADMIN_PROFILE);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setCurrentUser(firebaseUser);
-        localStorage.removeItem(LOCAL_DEMO_USER_KEY);
-        await fetchOrCreateUserProfile(firebaseUser);
-      } else {
-        setCurrentUser(null);
-        const savedDemo = localStorage.getItem(LOCAL_DEMO_USER_KEY);
-        if (savedDemo) {
-          try {
-            setUserProfile(JSON.parse(savedDemo));
-          } catch {
-            setUserProfile(null);
-          }
+    // Escuta estado do Firebase sem travar o aplicativo se não houver login
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          setCurrentUser(firebaseUser);
+          await fetchOrCreateUserProfile(firebaseUser);
         } else {
-          setUserProfile(null);
+          setCurrentUser(null);
+          // Permanece com perfil de Administrador com controle total
+          const saved = localStorage.getItem(LOCAL_DEMO_USER_KEY);
+          if (saved) {
+            try {
+              setUserProfile({ ...JSON.parse(saved), role: 'admin' });
+            } catch {
+              setUserProfile(DEFAULT_ADMIN_PROFILE);
+            }
+          } else {
+            setUserProfile(DEFAULT_ADMIN_PROFILE);
+          }
         }
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch {
+      setLoading(false);
+    }
   }, []);
 
   const translateAuthError = (err: unknown): string => {
@@ -122,6 +133,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return 'Este e-mail já está cadastrado no sistema. Faça login ou use "Esqueci minha senha".';
       case 'auth/weak-password':
         return 'A senha é muito fraca. Utilize no mínimo 6 caracteres com letras e números.';
+      case 'auth/unauthorized-domain':
+        return 'Este domínio não está autorizado no Firebase deste projeto. Conecte seu próprio projeto Firebase nas variáveis da Hostinger ou utilize os botões do "Ambiente de Testes / Modo Rápido" abaixo para entrar imediatamente.';
       case 'auth/operation-not-allowed':
         return 'O método de login por e-mail/senha precisa ser habilitado no Firebase Console. Você também pode entrar via Google.';
       case 'auth/popup-closed-by-user':
@@ -220,9 +233,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (auth.currentUser) {
         await signOut(auth);
       }
+    } catch {
+      // Ignora erro de signOut caso offline
     } finally {
       setCurrentUser(null);
-      setUserProfile(null);
+      setUserProfile(DEFAULT_ADMIN_PROFILE);
       localStorage.removeItem(LOCAL_DEMO_USER_KEY);
     }
   };

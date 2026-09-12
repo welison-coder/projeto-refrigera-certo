@@ -3,22 +3,41 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import defaultConfig from '../firebase-applet-config.json';
 
-// Resolves Firebase configuration prioritizing environment variables (for Hostinger / custom hosting)
-// and seamlessly falling back to the bundled firebase-applet-config.json (for AI Studio development)
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__?: {
+      apiKey?: string;
+      authDomain?: string;
+      projectId?: string;
+      storageBucket?: string;
+      messagingSenderId?: string;
+      appId?: string;
+      measurementId?: string;
+      firestoreDatabaseId?: string;
+    };
+  }
+}
+
+const runtime = typeof window !== 'undefined' ? window.__RUNTIME_CONFIG__ : undefined;
+
+// Resolves Firebase configuration prioritizing:
+// 1. Runtime config injected by Express server.js from Hostinger environment variables (works immediately without rebuild)
+// 2. Vite compile-time environment variables (import.meta.env.VITE_*)
+// 3. Fallback to bundled firebase-applet-config.json (for AI Studio development)
 const resolvedConfig = {
-  apiKey: (import.meta.env?.VITE_FIREBASE_API_KEY as string | undefined) || defaultConfig.apiKey,
-  authDomain: (import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN as string | undefined) || defaultConfig.authDomain,
-  projectId: (import.meta.env?.VITE_FIREBASE_PROJECT_ID as string | undefined) || defaultConfig.projectId,
-  storageBucket: (import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET as string | undefined) || defaultConfig.storageBucket,
-  messagingSenderId: (import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined) || defaultConfig.messagingSenderId,
-  appId: (import.meta.env?.VITE_FIREBASE_APP_ID as string | undefined) || defaultConfig.appId,
-  measurementId: (import.meta.env?.VITE_FIREBASE_MEASUREMENT_ID as string | undefined) || defaultConfig.measurementId || undefined,
+  apiKey: runtime?.apiKey || (import.meta.env?.VITE_FIREBASE_API_KEY as string | undefined) || defaultConfig.apiKey,
+  authDomain: runtime?.authDomain || (import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN as string | undefined) || defaultConfig.authDomain,
+  projectId: runtime?.projectId || (import.meta.env?.VITE_FIREBASE_PROJECT_ID as string | undefined) || defaultConfig.projectId,
+  storageBucket: runtime?.storageBucket || (import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET as string | undefined) || defaultConfig.storageBucket,
+  messagingSenderId: runtime?.messagingSenderId || (import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined) || defaultConfig.messagingSenderId,
+  appId: runtime?.appId || (import.meta.env?.VITE_FIREBASE_APP_ID as string | undefined) || defaultConfig.appId,
+  measurementId: runtime?.measurementId || (import.meta.env?.VITE_FIREBASE_MEASUREMENT_ID as string | undefined) || defaultConfig.measurementId || undefined,
 };
 
 const app = getApps().length === 0 ? initializeApp(resolvedConfig) : getApp();
 
 // Database initialization: supports custom database ID or default Firestore instance
-const customDatabaseId = (import.meta.env?.VITE_FIRESTORE_DATABASE_ID as string | undefined) || defaultConfig.firestoreDatabaseId;
+const customDatabaseId = runtime?.firestoreDatabaseId || (import.meta.env?.VITE_FIRESTORE_DATABASE_ID as string | undefined) || defaultConfig.firestoreDatabaseId;
 
 export const db = customDatabaseId && customDatabaseId !== '(default)'
   ? getFirestore(app, customDatabaseId)
