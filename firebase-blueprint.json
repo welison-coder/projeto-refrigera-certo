@@ -6,7 +6,7 @@
     "users": {
       "path": "users/{userId}",
       "description": "Perfis de usuários técnicos e administradores",
-      "rules": "Usuários autenticados podem ler e criar/atualizar apenas seus próprios registros",
+      "rules": "Usuários autenticados ou convidados podem ler e atualizar registros",
       "schema": {
         "type": "object",
         "required": ["id", "name", "email", "role", "createdAt"],
@@ -16,6 +16,25 @@
           "email": { "type": "string", "maxLength": 150 },
           "role": { "type": "string", "enum": ["admin", "tecnico", "gerente"] },
           "createdAt": { "type": "string", "maxLength": 50 }
+        }
+      }
+    },
+    "company_data": {
+      "path": "company_data/{docId}",
+      "description": "Sincronização automática em tempo real entre todos os dispositivos (celulares, computadores, tablets)",
+      "rules": "Permite leitura e escrita para sincronização multi-dispositivo",
+      "schema": {
+        "type": "object",
+        "required": ["lastUpdated", "version"],
+        "properties": {
+          "clients": { "type": "array" },
+          "equipment": { "type": "array" },
+          "visits": { "type": "array" },
+          "quotes": { "type": "array" },
+          "maintenanceLogs": { "type": "array" },
+          "companySettings": { "type": "object" },
+          "lastUpdated": { "type": "string" },
+          "version": { "type": "number" }
         }
       }
     }

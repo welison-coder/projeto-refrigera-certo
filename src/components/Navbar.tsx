@@ -13,6 +13,7 @@ import {
 import { CompanySettings } from '../types';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '../contexts/AuthContext';
+import { SyncIndicator } from './SyncIndicator';
 
 export type ActiveTab = 'dashboard' | 'visits' | 'quotes' | 'maintenance' | 'clients';
 
@@ -154,6 +155,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <FileText className="w-3.5 h-3.5" />
               <span>Emitir Orçamento</span>
             </button>
+
+            {/* Multi-Device Real-time Sync Indicator */}
+            <SyncIndicator />
 
             <button
               id="btn-open-settings"

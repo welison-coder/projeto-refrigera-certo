@@ -121,6 +121,129 @@ async function startServer() {
     });
   });
 
+  // ========================================================
+  // 3. MULTI-DEVICE CLOUD AUTO-SYNC API (Central Database)
+  // ========================================================
+  const DATA_DIR = path.join(process.cwd(), 'data');
+  const SYNC_FILE = path.join(DATA_DIR, 'company_data.json');
+
+  // Ensure data directory exists
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (err) {
+    console.error('Erro ao inicializar pasta de dados:', err);
+  }
+
+  // Helper to read current synced company data
+  function readCompanyData() {
+    try {
+      if (fs.existsSync(SYNC_FILE)) {
+        const raw = fs.readFileSync(SYNC_FILE, 'utf-8');
+        return JSON.parse(raw);
+      }
+    } catch (err) {
+      console.error('Erro ao ler company_data.json:', err);
+    }
+    return null;
+  }
+
+  // Helper to save company data safely (atomic write)
+  function saveCompanyData(data: any) {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      const tempFile = `${SYNC_FILE}.tmp.${Date.now()}`;
+      fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+      fs.renameSync(tempFile, SYNC_FILE);
+      return true;
+    } catch (err) {
+      console.error('Erro ao salvar company_data.json:', err);
+      return false;
+    }
+  }
+
+  // GET /api/sync - Retrieve full synchronized data for any connected device
+  app.get('/api/sync', (req, res) => {
+    const data = readCompanyData();
+    if (data) {
+      res.json({
+        exists: true,
+        version: data.version || 1,
+        lastUpdated: data.lastUpdated || new Date().toISOString(),
+        clients: data.clients || [],
+        equipment: data.equipment || [],
+        visits: data.visits || [],
+        quotes: data.quotes || [],
+        maintenanceLogs: data.maintenanceLogs || [],
+        companySettings: data.companySettings || null,
+      });
+    } else {
+      res.json({
+        exists: false,
+        version: 0,
+        lastUpdated: null,
+      });
+    }
+  });
+
+  // GET /api/sync/status - Lightweight status check for background polling (< 100 bytes)
+  app.get('/api/sync/status', (req, res) => {
+    const data = readCompanyData();
+    res.json({
+      exists: Boolean(data),
+      version: data?.version || 0,
+      lastUpdated: data?.lastUpdated || null,
+    });
+  });
+
+  // POST /api/sync - Auto-save changes from any device (phone, desktop, tablet)
+  app.post('/api/sync', (req, res) => {
+    try {
+      const {
+        clients,
+        equipment,
+        visits,
+        quotes,
+        maintenanceLogs,
+        companySettings,
+        clientVersion,
+      } = req.body;
+
+      const currentData = readCompanyData();
+      const currentVersion = currentData?.version || 0;
+      const nextVersion = Math.max(currentVersion, typeof clientVersion === 'number' ? clientVersion : 0) + 1;
+      const now = new Date().toISOString();
+
+      const payload = {
+        version: nextVersion,
+        lastUpdated: now,
+        clients: Array.isArray(clients) ? clients : currentData?.clients || [],
+        equipment: Array.isArray(equipment) ? equipment : currentData?.equipment || [],
+        visits: Array.isArray(visits) ? visits : currentData?.visits || [],
+        quotes: Array.isArray(quotes) ? quotes : currentData?.quotes || [],
+        maintenanceLogs: Array.isArray(maintenanceLogs) ? maintenanceLogs : currentData?.maintenanceLogs || [],
+        companySettings: companySettings && typeof companySettings === 'object' ? companySettings : currentData?.companySettings || null,
+      };
+
+      const success = saveCompanyData(payload);
+      if (success) {
+        res.json({
+          success: true,
+          version: nextVersion,
+          lastUpdated: now,
+        });
+      } else {
+        res.status(500).json({ success: false, error: 'Falha ao salvar no banco central.' });
+      }
+    } catch (err: any) {
+      console.error('Erro na rota POST /api/sync:', err);
+      res.status(500).json({ success: false, error: err?.message || 'Erro ao sincronizar dados.' });
+    }
+  });
+
   // 404 for unmatched API routes
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: 'Endpoint de API não encontrado.' });

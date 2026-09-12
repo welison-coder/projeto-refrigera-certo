@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Client,
   Equipment,
@@ -8,6 +8,7 @@ import {
   CompanySettings
 } from './types';
 import { storage } from './utils/storage';
+import { syncService } from './services/syncService';
 import { Navbar, ActiveTab } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { VisitsView } from './components/VisitsView';
@@ -41,6 +42,55 @@ function MainApp() {
   const [selectedQuoteForPreview, setSelectedQuoteForPreview] = useState<Quote | null>(null);
   const [selectedEquipmentForMaintenance, setSelectedEquipmentForMaintenance] = useState<string | undefined>(undefined);
 
+  // Synchronization references
+  const isInitialMount = useRef(true);
+  const isSyncingFromRemote = useRef(false);
+
+  // 1. Initial Cloud Sync and Remote Event Listener
+  useEffect(() => {
+    syncService.initializeSync({
+      clients,
+      equipment,
+      visits,
+      quotes,
+      maintenanceLogs,
+      companySettings,
+    }).then(merged => {
+      if (merged) {
+        isSyncingFromRemote.current = true;
+        setClients(merged.clients);
+        setEquipment(merged.equipment);
+        setVisits(merged.visits);
+        setQuotes(merged.quotes);
+        setMaintenanceLogs(merged.maintenanceLogs);
+        if (merged.companySettings) {
+          setCompanySettings(merged.companySettings);
+        }
+        setTimeout(() => {
+          isSyncingFromRemote.current = false;
+        }, 150);
+      }
+    });
+
+    // Subscribe to real-time updates broadcast from other devices
+    const unsubscribe = syncService.subscribeRemoteUpdates((remote) => {
+      isSyncingFromRemote.current = true;
+      setClients(remote.clients);
+      setEquipment(remote.equipment);
+      setVisits(remote.visits);
+      setQuotes(remote.quotes);
+      setMaintenanceLogs(remote.maintenanceLogs);
+      if (remote.companySettings) {
+        setCompanySettings(remote.companySettings);
+      }
+      setTimeout(() => {
+        isSyncingFromRemote.current = false;
+      }, 150);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // Sync to localStorage
   useEffect(() => {
     storage.saveClients(clients);
@@ -65,6 +115,26 @@ function MainApp() {
   useEffect(() => {
     storage.saveCompanySettings(companySettings);
   }, [companySettings]);
+
+  // 2. Automatically save any change to the cloud for all devices (No export needed!)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (isSyncingFromRemote.current) {
+      return;
+    }
+
+    syncService.queuePush({
+      clients,
+      equipment,
+      visits,
+      quotes,
+      maintenanceLogs,
+      companySettings,
+    });
+  }, [clients, equipment, visits, quotes, maintenanceLogs, companySettings]);
 
   // Reload all data
   const handleReloadAllData = () => {
