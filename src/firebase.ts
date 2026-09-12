@@ -1,12 +1,29 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
+import defaultConfig from '../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
+// Resolves Firebase configuration prioritizing environment variables (for Hostinger / custom hosting)
+// and seamlessly falling back to the bundled firebase-applet-config.json (for AI Studio development)
+const resolvedConfig = {
+  apiKey: (import.meta.env?.VITE_FIREBASE_API_KEY as string | undefined) || defaultConfig.apiKey,
+  authDomain: (import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN as string | undefined) || defaultConfig.authDomain,
+  projectId: (import.meta.env?.VITE_FIREBASE_PROJECT_ID as string | undefined) || defaultConfig.projectId,
+  storageBucket: (import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET as string | undefined) || defaultConfig.storageBucket,
+  messagingSenderId: (import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined) || defaultConfig.messagingSenderId,
+  appId: (import.meta.env?.VITE_FIREBASE_APP_ID as string | undefined) || defaultConfig.appId,
+  measurementId: (import.meta.env?.VITE_FIREBASE_MEASUREMENT_ID as string | undefined) || defaultConfig.measurementId || undefined,
+};
 
-// CRITICAL: Database initialized with custom firestoreDatabaseId as required by AI Studio
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const app = getApps().length === 0 ? initializeApp(resolvedConfig) : getApp();
+
+// Database initialization: supports custom database ID or default Firestore instance
+const customDatabaseId = (import.meta.env?.VITE_FIRESTORE_DATABASE_ID as string | undefined) || defaultConfig.firestoreDatabaseId;
+
+export const db = customDatabaseId && customDatabaseId !== '(default)'
+  ? getFirestore(app, customDatabaseId)
+  : getFirestore(app);
+
 export const auth = getAuth(app);
 
 export enum OperationType {
