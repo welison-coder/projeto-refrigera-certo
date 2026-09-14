@@ -181,8 +181,29 @@ export const storage = {
         delete settings.technicalRegistration;
         changed = true;
       }
-      if (settings.companyName && (settings.companyName.includes('Refrigeração Comercial') || settings.companyName.includes('Refrigeração'))) {
-        settings.companyName = 'Refrigera Certo - Soluções em Climatização';
+      if (!settings.cnpj || settings.cnpj === '45.892.114/0001-92') {
+        settings.cnpj = '60.768.974/0001-41';
+        changed = true;
+      }
+      if (!settings.address || settings.address.includes('Rua Barão de Jundiaí')) {
+        settings.address = '710 Asa Norte, Brasília - DF';
+        changed = true;
+      }
+      if (settings.pixKey === '45.892.114/0001-92') {
+        settings.pixKey = '60.768.974/0001-41';
+        changed = true;
+      }
+      if (settings.companyName && (settings.companyName.includes('Refrigera Certo') || settings.companyName.includes('Refrigeração'))) {
+        settings.companyName = 'Ar Soluções - Climatização Especializada';
+        settings.tradeName = 'Ar Soluções Climatização';
+        changed = true;
+      }
+      if (!settings.phone || settings.phone.includes('98451-2290')) {
+        settings.phone = '(61) 992848993';
+        changed = true;
+      }
+      if (!settings.email || settings.email.includes('refrigeracerto') || settings.email === 'atendimento@arsolucoes.com.br') {
+        settings.email = 'arsolucoesdf@gmail.com';
         changed = true;
       }
       if (changed) {

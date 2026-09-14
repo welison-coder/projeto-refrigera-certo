@@ -17,7 +17,10 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Navigation
+  Navigation,
+  PenTool,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import { Quote, QuoteItem, QuoteStatus, Client, CompanySettings, TechnicalVisit } from '../types';
 import { formatCurrency, formatDateBR, createWhatsAppLink, generateQuoteWhatsAppMessage } from '../utils/formatters';
@@ -54,6 +57,14 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
 
   // Print/Preview Modal
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(initialSelectedQuote || null);
+  const [copiedQuoteId, setCopiedQuoteId] = useState<string | null>(null);
+
+  const handleCopySignatureLink = (quoteId: string) => {
+    const link = `${window.location.origin}/?assinar=${quoteId}`;
+    navigator.clipboard.writeText(link);
+    setCopiedQuoteId(quoteId);
+    setTimeout(() => setCopiedQuoteId(null), 2500);
+  };
 
   // Form states
   const [formClientId, setFormClientId] = useState<string>('');
@@ -384,13 +395,17 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredQuotes.map((quote) => {
+            const signatureLink = `${window.location.origin}/?assinar=${quote.id}`;
             const waText = generateQuoteWhatsAppMessage(
               companySettings.tradeName,
               quote.clientName,
               quote.number,
               quote.total,
               quote.paymentTerms,
-              quote.equipmentDescription
+              quote.equipmentDescription,
+              signatureLink,
+              companySettings.phone || '(61) 992848993',
+              companySettings.email || 'arsolucoesdf@gmail.com'
             );
             const waLink = createWhatsAppLink(quote.clientPhone, waText);
 
@@ -403,9 +418,17 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                   
                   {/* Top: Number & Status */}
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                      {quote.number}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                        {quote.number}
+                      </span>
+                      {quote.signature && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Assinado Online</span>
+                        </span>
+                      )}
+                    </div>
 
                     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                       quote.status === 'Aprovado' || quote.status === 'Faturado'
@@ -477,13 +500,37 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
 
                 {/* Footer Buttons */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
-                  <button
-                    onClick={() => setPreviewQuote(quote)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold transition-colors"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Visualizar / PDF</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setPreviewQuote(quote)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold transition-colors"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>PDF</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleCopySignatureLink(quote.id)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        copiedQuoteId === quote.id
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                      }`}
+                      title="Copiar link para o cliente assinar online (sem login)"
+                    >
+                      {copiedQuoteId === quote.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <PenTool className="w-3.5 h-3.5" />
+                          <span>Assinar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
 
                   <div className="flex items-center gap-1">
                     <a
@@ -988,6 +1035,26 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                 )}
 
                 <button
+                  onClick={() => handleCopySignatureLink(previewQuote.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200"
+                  title="Copiar link exclusivo de assinatura para o cliente"
+                >
+                  <PenTool className="w-3.5 h-3.5" />
+                  <span>{copiedQuoteId === previewQuote.id ? 'Link Copiado!' : 'Copiar Link p/ Cliente Assinar'}</span>
+                </button>
+
+                <a
+                  href={`/?assinar=${previewQuote.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                  title="Abrir a tela pública de assinatura online"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Portal do Cliente</span>
+                </a>
+
+                <button
                   onClick={() => window.print()}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs"
                 >
@@ -1164,15 +1231,51 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
               )}
 
               {/* Signature Lines for formal sign-off */}
-              <div className="pt-10 grid grid-cols-2 gap-8 text-center text-xs">
-                <div className="border-t border-slate-400 pt-2">
+              <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
+                <div className="border-t border-slate-400 pt-2 flex flex-col items-center">
+                  <div className="h-12 flex items-center justify-center">
+                    <span className="font-serif italic text-base text-slate-700">
+                      {companySettings.technicianResponsible}
+                    </span>
+                  </div>
                   <p className="font-bold text-slate-800">{companySettings.technicianResponsible}</p>
-                  <p className="text-slate-500">{companySettings.tradeName || 'Refrigera Certo'} • Responsável Técnico</p>
+                  <p className="text-slate-500">{companySettings.tradeName || 'Ar Soluções Climatização'} • Responsável Técnico</p>
                 </div>
 
-                <div className="border-t border-slate-400 pt-2">
-                  <p className="font-bold text-slate-800">{previewQuote.clientName}</p>
-                  <p className="text-slate-500">De acordo do Cliente (Assinatura / Data)</p>
+                <div className="border-t border-slate-400 pt-2 flex flex-col items-center">
+                  {previewQuote.signature ? (
+                    <div className="flex flex-col items-center w-full">
+                      <div className="h-12 flex items-center justify-center">
+                        {previewQuote.signature.signatureDataUrl ? (
+                          <img
+                            src={previewQuote.signature.signatureDataUrl}
+                            alt="Assinatura do Cliente"
+                            className="max-h-11 max-w-full object-contain"
+                          />
+                        ) : (
+                          <span className="font-serif italic text-base font-bold text-sky-900">
+                            {previewQuote.signature.signedBy}
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-bold text-slate-800">{previewQuote.signature.signedBy}</p>
+                      {previewQuote.signature.documentNumber && (
+                        <p className="text-slate-500 text-[10px]">Doc: {previewQuote.signature.documentNumber}</p>
+                      )}
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        Assinado Online em {new Date(previewQuote.signature.signedAt).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="h-12 flex items-center justify-center text-slate-400 italic text-[11px]">
+                        (Aguardando assinatura digital do cliente)
+                      </div>
+                      <p className="font-bold text-slate-800">{previewQuote.clientName}</p>
+                      <p className="text-slate-500">De acordo do Cliente (Assinatura Eletrônica)</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

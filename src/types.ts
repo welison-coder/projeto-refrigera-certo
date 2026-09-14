@@ -72,6 +72,15 @@ export interface QuoteItem {
   total: number;
 }
 
+export interface ClientSignature {
+  signedBy: string;
+  documentNumber?: string;
+  signedAt: string;
+  signatureDataUrl?: string;
+  ipAddress?: string;
+  signType: 'drawn' | 'typed';
+}
+
 export interface Quote {
   id: string;
   number: string; // e.g. ORC-1085
@@ -94,6 +103,7 @@ export interface Quote {
   status: QuoteStatus;
   createdAt: string;
   approvedAt?: string;
+  signature?: ClientSignature;
 }
 
 export interface MaintenanceLog {
@@ -123,6 +133,7 @@ export interface MaintenanceLog {
   observations: string;
   nextMaintenanceRecommendedDate: string;
   status: 'Concluído' | 'Pendente Retorno';
+  signature?: ClientSignature;
 }
 
 export interface CompanySettings {

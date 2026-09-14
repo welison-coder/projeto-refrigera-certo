@@ -13,7 +13,10 @@ import {
   ShieldAlert,
   Edit2,
   Trash2,
-  FileCheck
+  FileCheck,
+  PenTool,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import { MaintenanceLog, Equipment, Client, CompanySettings, MaintenanceType } from '../types';
 import { formatDateBR } from '../utils/formatters';
@@ -45,6 +48,14 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingLog, setEditingLog] = useState<MaintenanceLog | null>(null);
   const [previewLog, setPreviewLog] = useState<MaintenanceLog | null>(null);
+  const [copiedLogId, setCopiedLogId] = useState<string | null>(null);
+
+  const handleCopySignatureLink = (logId: string) => {
+    const link = `${window.location.origin}/?assinar_os=${logId}`;
+    navigator.clipboard.writeText(link);
+    setCopiedLogId(logId);
+    setTimeout(() => setCopiedLogId(null), 2500);
+  };
 
   // Form states
   const [formEquipmentId, setFormEquipmentId] = useState<string>('');
@@ -308,6 +319,12 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
                     <span className="text-xs text-slate-400">
                       Realizada em: <strong className="text-slate-700">{formatDateBR(log.date)}</strong>
                     </span>
+                    {log.signature && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1 border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>Assinado pelo Cliente</span>
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="font-bold text-base text-slate-900 mt-1">
@@ -319,6 +336,28 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCopySignatureLink(log.id)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      copiedLogId === log.id
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                    }`}
+                    title="Copiar link para o cliente assinar a OS online"
+                  >
+                    {copiedLogId === log.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <PenTool className="w-3.5 h-3.5" />
+                        <span>Assinar</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     onClick={() => setPreviewLog(log)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
@@ -806,6 +845,26 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
 
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => handleCopySignatureLink(previewLog.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200"
+                  title="Copiar link exclusivo de assinatura para o cliente"
+                >
+                  <PenTool className="w-3.5 h-3.5" />
+                  <span>{copiedLogId === previewLog.id ? 'Link Copiado!' : 'Copiar Link p/ Cliente Assinar'}</span>
+                </button>
+
+                <a
+                  href={`/?assinar_os=${previewLog.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                  title="Abrir página pública de assinatura"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Portal do Cliente</span>
+                </a>
+
+                <button
                   onClick={() => window.print()}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold"
                 >
@@ -901,14 +960,51 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
               )}
 
               {/* Signatures */}
-              <div className="pt-10 grid grid-cols-2 gap-8 text-center">
-                <div className="border-t border-slate-400 pt-1">
-                  <p className="font-bold">{previewLog.technicianName}</p>
-                  <p className="text-slate-500 text-[11px]">Técnico de Campo • Refrigera Certo</p>
+              <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
+                <div className="border-t border-slate-400 pt-2 flex flex-col items-center">
+                  <div className="h-10 flex items-center justify-center">
+                    <span className="font-serif italic text-sm text-slate-700">
+                      {previewLog.technicianName}
+                    </span>
+                  </div>
+                  <p className="font-bold text-slate-800">{previewLog.technicianName}</p>
+                  <p className="text-slate-500 text-[11px]">Técnico de Campo • {companySettings.tradeName || 'Ar Soluções Climatização'}</p>
                 </div>
-                <div className="border-t border-slate-400 pt-1">
-                  <p className="font-bold">{previewLog.clientName}</p>
-                  <p className="text-slate-500 text-[11px]">Assinatura do Responsável no Local</p>
+
+                <div className="border-t border-slate-400 pt-2 flex flex-col items-center">
+                  {previewLog.signature ? (
+                    <div className="flex flex-col items-center w-full">
+                      <div className="h-10 flex items-center justify-center">
+                        {previewLog.signature.signatureDataUrl ? (
+                          <img
+                            src={previewLog.signature.signatureDataUrl}
+                            alt="Assinatura do Cliente"
+                            className="max-h-9 max-w-full object-contain"
+                          />
+                        ) : (
+                          <span className="font-serif italic text-base font-bold text-sky-900">
+                            {previewLog.signature.signedBy}
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-bold text-slate-800">{previewLog.signature.signedBy}</p>
+                      {previewLog.signature.documentNumber && (
+                        <p className="text-slate-500 text-[10px]">Doc: {previewLog.signature.documentNumber}</p>
+                      )}
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        Assinado Online em {new Date(previewLog.signature.signedAt).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="h-10 flex items-center justify-center text-slate-400 italic text-[11px]">
+                        (Aguardando assinatura do cliente)
+                      </div>
+                      <p className="font-bold text-slate-800">{previewLog.clientName}</p>
+                      <p className="text-slate-500 text-[11px]">Assinatura do Responsável no Local</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

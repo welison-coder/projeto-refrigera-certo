@@ -79,13 +79,25 @@ export function generateQuoteWhatsAppMessage(
   quoteNumber: string,
   total: number,
   paymentTerms: string,
-  equipment: string
+  equipment: string,
+  signatureLink?: string,
+  companyPhone?: string,
+  companyEmail?: string
 ): string {
-  return `Olá, ${clientName}! Segue o orçamento da *${companyName}*:
+  let msg = `Olá, ${clientName}! Segue o orçamento da *${companyName}*:
 📄 Orçamento: *#${quoteNumber}*
 ❄️ Equipamento: *${equipment}*
 💰 Valor Total: *${formatCurrency(total)}*
-💳 Condições: *${paymentTerms}*
+💳 Condições: *${paymentTerms}*`;
 
-Ficamos à disposição para esclarecer qualquer dúvida e iniciar os serviços!`;
+  const phone = companyPhone || '(61) 992848993';
+  const email = companyEmail || 'arsolucoesdf@gmail.com';
+  msg += `\n📞 WhatsApp: *${phone}*\n✉️ E-mail: *${email}*`;
+
+  if (signatureLink) {
+    msg += `\n\n✍️ *Visualizar e Assinar Online (Sem login):* \n${signatureLink}`;
+  }
+
+  msg += `\n\nFicamos à disposição para esclarecer qualquer dúvida e iniciar os serviços!`;
+  return msg;
 }

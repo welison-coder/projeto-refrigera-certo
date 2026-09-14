@@ -1,14 +1,14 @@
 import { Client, Equipment, TechnicalVisit, Quote, MaintenanceLog, CompanySettings } from '../types';
 
 export const initialCompanySettings: CompanySettings = {
-  companyName: 'Refrigera Certo - Soluções em Climatização',
-  tradeName: 'Refrigera Certo',
-  cnpj: '45.892.114/0001-92',
-  phone: '(11) 98451-2290',
-  email: 'atendimento@refrigeracerto.com.br',
-  address: 'Rua Barão de Jundiaí, 780 - Lapa, São Paulo - SP',
+  companyName: 'Ar Soluções - Climatização Especializada',
+  tradeName: 'Ar Soluções Climatização',
+  cnpj: '60.768.974/0001-41',
+  phone: '(61) 992848993',
+  email: 'arsolucoesdf@gmail.com',
+  address: '710 Asa Norte, Brasília - DF',
   technicianResponsible: 'Wellisson Medeiros',
-  pixKey: '45.892.114/0001-92',
+  pixKey: '60.768.974/0001-41',
   defaultWarranty: 'Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.'
 };
 

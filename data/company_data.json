@@ -1,0 +1,1021 @@
+{
+  "version": 10,
+  "lastUpdated": "2026-09-14T15:08:40.297Z",
+  "clients": [
+    {
+      "id": "cli-1788621582062",
+      "name": "Betânia ",
+      "document": "700740891-53",
+      "phone": "+55 61 8121-2821",
+      "email": "Betaniapontes@gmail.com",
+      "address": {
+        "street": "Avenida Parque Águas Claras",
+        "number": "701",
+        "neighborhood": "Norte (Águas Claras)",
+        "city": "Brasília - DF",
+        "zipCode": "71906-500"
+      },
+      "notes": "",
+      "createdAt": "2026-09-05"
+    },
+    {
+      "id": "cli-1788603458376",
+      "name": "Marcelo Ivo Silva de lima",
+      "document": "670.028.381-72",
+      "phone": "61 991971261",
+      "email": "marrceloivo@gmail.com",
+      "address": {
+        "street": "Marcelo Ivo Silva de Lima 670.028.381-72 61 991971261 m SQNW 305 - Bloco H - Yard - Noroeste",
+        "number": "110",
+        "neighborhood": "Noroeste ",
+        "city": "Brasília-DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-05"
+    },
+    {
+      "id": "cli-1788539624430",
+      "name": "Antonio Batista Reis",
+      "document": "693.068.181-49",
+      "phone": "+55 61 8448-6434",
+      "email": "antoniobatistareis@gmail.com",
+      "address": {
+        "street": "Condomínio RK",
+        "number": "15",
+        "neighborhood": "Região dos Lagos (Sobradinho)",
+        "city": "Brasília - DF",
+        "zipCode": "73252-200"
+      },
+      "notes": "",
+      "createdAt": "2026-09-04"
+    },
+    {
+      "id": "cli-1788538130550",
+      "name": "MARCELO NEVES VIDAL",
+      "document": "040.016.146-00",
+      "phone": "61 99147-4091",
+      "email": "mnvidal@hotmail.com",
+      "address": {
+        "street": "Rodovia DF-250",
+        "number": "04",
+        "neighborhood": "Região dos Lagos (Sobradinho)",
+        "city": "Brasília - DF",
+        "zipCode": "73255-904"
+      },
+      "notes": "",
+      "createdAt": "2026-09-04"
+    },
+    {
+      "id": "cli-1788537840052",
+      "name": "Cliente Arniqueiras ",
+      "document": "",
+      "phone": "61998135885",
+      "email": "",
+      "address": {
+        "street": "",
+        "number": "",
+        "neighborhood": "",
+        "city": "São Paulo - SP"
+      },
+      "notes": "",
+      "createdAt": "2026-09-04"
+    },
+    {
+      "id": "cli-1788485147565",
+      "name": "Phisio fisioterapia",
+      "document": "",
+      "phone": "+55 61 8187-0130",
+      "email": "",
+      "address": {
+        "street": "Smpw quadra 14 conjunto 02 lote 01 casa F residencial akhenaton",
+        "number": "",
+        "neighborhood": "Park Way",
+        "city": "BRASILIA-DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-04"
+    },
+    {
+      "id": "cli-1788458258063",
+      "name": "Betânia",
+      "document": "",
+      "phone": "+55 61 8121-2821",
+      "email": "",
+      "address": {
+        "street": "Avenida Parque Águas Claras 2735, bloco B, apartamento 701",
+        "number": "701",
+        "neighborhood": "Endereço:  Avenida Parque Águas Claras",
+        "city": "Brasília-DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "cli-1788450229688",
+      "name": "Liliane da Cunha Santos ",
+      "document": "",
+      "phone": "+55 61 98155-2889",
+      "email": "",
+      "address": {
+        "street": " Vicente Pires",
+        "number": "",
+        "neighborhood": "Vicente Pires, Rua 05 chácara 116 Edifício Vogue - lojas no estacionamento",
+        "city": "Brasília-Df"
+      },
+      "notes": "",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "cli-1788440493414",
+      "name": "Wellington Campos",
+      "document": "",
+      "phone": "+55 61 8230-1518",
+      "email": "",
+      "address": {
+        "street": "",
+        "number": "",
+        "neighborhood": "",
+        "city": "Brasilia-DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "cli-1788402306160",
+      "name": "Erique Souza ",
+      "document": "",
+      "phone": "+55 34 9822-6070",
+      "email": "",
+      "address": {
+        "street": "Guara 2",
+        "number": "311",
+        "neighborhood": "QE 24",
+        "city": "BRASÍLIA DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "cli-1788397279271",
+      "name": "Érika Guerrero",
+      "document": "",
+      "phone": "61 981644230",
+      "email": "",
+      "address": {
+        "street": "Rua 3, chácara 88B, casa 37 Vicente Pires - Condomínio Cândido Portinari, entrada B CEP: 72005-795",
+        "number": "",
+        "neighborhood": "Vicente Pires ",
+        "city": "Brasília DF"
+      },
+      "notes": "",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "cli-1",
+      "name": "Padaria & Empório Pão Dourado Ltda",
+      "document": "28.114.908/0001-35",
+      "phone": "(11) 97123-4567",
+      "email": "gerencia@paodourado.com.br",
+      "address": {
+        "street": "Av. Brigadeiro Faria Lima",
+        "number": "1240",
+        "neighborhood": "Pinheiros",
+        "city": "São Paulo - SP",
+        "complement": "Loja Térrea"
+      },
+      "notes": "Acesso para manutenção preferencialmente antes das 08:30 ou após as 14:00.",
+      "createdAt": "2026-01-15"
+    },
+    {
+      "id": "cli-2",
+      "name": "Dra. Camila Vasconcelos (Clínica Odonto)",
+      "document": "312.845.918-04",
+      "phone": "(11) 98844-3321",
+      "email": "camila.odonto@clinica.com.br",
+      "address": {
+        "street": "Rua Pamplona",
+        "number": "550",
+        "neighborhood": "Jardins",
+        "city": "São Paulo - SP",
+        "complement": "Conjunto 82"
+      },
+      "notes": "Exige laudo de higienização semestral e controle de ruído nas salas de atendimento.",
+      "createdAt": "2026-02-01"
+    },
+    {
+      "id": "cli-3",
+      "name": "Supermercado Central da Vila",
+      "document": "19.452.782/0001-60",
+      "phone": "(11) 99182-7744",
+      "email": "compras@centraldavila.com.br",
+      "address": {
+        "street": "Rua Tito",
+        "number": "430",
+        "neighborhood": "Vila Romana",
+        "city": "São Paulo - SP"
+      },
+      "notes": "Contrato de manutenção preventiva e higienização periódica para condicionadores de ar.",
+      "createdAt": "2026-02-10"
+    },
+    {
+      "id": "cli-4",
+      "name": "Eduardo Martins (Residencial)",
+      "document": "298.112.348-11",
+      "phone": "(11) 97331-9022",
+      "email": "edu.martins@gmail.com",
+      "address": {
+        "street": "Rua Desembargador do Vale",
+        "number": "890",
+        "neighborhood": "Perdizes",
+        "city": "São Paulo - SP",
+        "complement": "Apto 114 Torre B"
+      },
+      "notes": "Condomínio exige agendamento prévio com a portaria e uso de sapatilhas protetoras.",
+      "createdAt": "2026-02-18"
+    }
+  ],
+  "equipment": [
+    {
+      "id": "eq-1788813018172",
+      "clientId": "cli-1788402306160",
+      "clientName": "Erique Souza ",
+      "type": "Split Inverter",
+      "brand": "TCL",
+      "model": "",
+      "capacity": "9.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "escritorio Principal",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2026-12-06"
+    },
+    {
+      "id": "eq-1788603539229",
+      "clientId": "cli-1788603458376",
+      "clientName": "Marcelo Ivo Silva de lima",
+      "type": "Split Inverter",
+      "brand": "Sansumg",
+      "model": "",
+      "capacity": "12.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "Escritorio Principal",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2027-06-11"
+    },
+    {
+      "id": "eq-1788539703967",
+      "clientId": "cli-1788539624430",
+      "clientName": "Antonio Batista Reis",
+      "type": "Split Inverter",
+      "brand": "Sansumg",
+      "model": "",
+      "capacity": "12.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "Quarto Principal",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2027-06-11"
+    },
+    {
+      "id": "eq-1788515567314",
+      "clientId": "cli-1788458258063",
+      "clientName": "Betânia",
+      "type": "Split Inverter",
+      "brand": "Elgin",
+      "model": "",
+      "capacity": "9.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "Quarto Principal",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2027-06-08"
+    },
+    {
+      "id": "eq-1788515490636",
+      "clientId": "cli-1788440493414",
+      "clientName": "Wellington Campos",
+      "type": "Split Inverter",
+      "brand": "Electrlux",
+      "model": "",
+      "capacity": "12.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "Quarto Principal",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2027-06-04"
+    },
+    {
+      "id": "eq-1788402472961",
+      "clientId": "cli-1788397279271",
+      "clientName": "Érika Guerrero",
+      "type": "Split Inverter",
+      "brand": "Electrolux",
+      "model": "",
+      "capacity": "9.000 BTUs",
+      "gasType": "R-32",
+      "serialNumber": "",
+      "locationDescription": "swit",
+      "status": "Operando Normal",
+      "nextMaintenanceDate": "2027-03-01"
+    },
+    {
+      "id": "eq-1",
+      "clientId": "cli-1",
+      "clientName": "Padaria & Empório Pão Dourado Ltda",
+      "type": "Split Piso Teto Inverter",
+      "brand": "Carrier",
+      "model": "42XQL060515LC",
+      "capacity": "60.000 BTU",
+      "gasType": "R-410A",
+      "serialNumber": "ELG-2023-8812",
+      "locationDescription": "Salão de vendas e buffet de pães",
+      "installationDate": "2023-05-12",
+      "lastMaintenanceDate": "2026-08-10",
+      "nextMaintenanceDate": "2026-11-10",
+      "status": "Operando Normal"
+    },
+    {
+      "id": "eq-2",
+      "clientId": "cli-1",
+      "clientName": "Padaria & Empório Pão Dourado Ltda",
+      "type": "Split Cassete",
+      "brand": "Carrier",
+      "model": "40KWQA36C5",
+      "capacity": "36.000 BTU",
+      "gasType": "R-410A",
+      "serialNumber": "CAR-36K-901",
+      "locationDescription": "Salão principal de atendimento ao cliente",
+      "installationDate": "2024-01-20",
+      "lastMaintenanceDate": "2026-06-15",
+      "nextMaintenanceDate": "2026-09-15",
+      "status": "Atenção / Manutenção Pendente"
+    },
+    {
+      "id": "eq-3",
+      "clientId": "cli-2",
+      "clientName": "Dra. Camila Vasconcelos (Clínica Odonto)",
+      "type": "Split Inverter Hi-Wall",
+      "brand": "Daikin",
+      "model": "FTKC12Q5VL",
+      "capacity": "12.000 BTU",
+      "gasType": "R-32",
+      "serialNumber": "DKN-2024-411",
+      "locationDescription": "Consultório Principal 01",
+      "installationDate": "2024-04-10",
+      "lastMaintenanceDate": "2026-07-20",
+      "nextMaintenanceDate": "2026-10-20",
+      "status": "Operando Normal"
+    },
+    {
+      "id": "eq-4",
+      "clientId": "cli-3",
+      "clientName": "Supermercado Central da Vila",
+      "type": "Split Cassete Inverter",
+      "brand": "Daikin",
+      "model": "FCNQ48MV2L",
+      "capacity": "48.000 BTU",
+      "gasType": "R-410A",
+      "serialNumber": "BITZ-9921",
+      "locationDescription": "Setor de caixas e atendimento principal",
+      "installationDate": "2022-11-05",
+      "lastMaintenanceDate": "2026-08-01",
+      "nextMaintenanceDate": "2026-09-05",
+      "status": "Atenção / Manutenção Pendente"
+    },
+    {
+      "id": "eq-5",
+      "clientId": "cli-4",
+      "clientName": "Eduardo Martins (Residencial)",
+      "type": "Multi-Split Inverter",
+      "brand": "Fujitsu",
+      "model": "AOBG24LAT3",
+      "capacity": "24.000 BTU (3x9.000)",
+      "gasType": "R-410A",
+      "serialNumber": "FUJ-7712-A",
+      "locationDescription": "Área técnica varanda / Dormitórios",
+      "installationDate": "2024-08-12",
+      "lastMaintenanceDate": "2026-02-15",
+      "nextMaintenanceDate": "2026-08-15",
+      "status": "Atenção / Manutenção Pendente"
+    }
+  ],
+  "visits": [
+    {
+      "id": "vis-1788621626049",
+      "code": "VIS-2026-945",
+      "clientId": "cli-1788621582062",
+      "clientName": "Betânia ",
+      "clientPhone": "+55 61 8121-2821",
+      "clientAddress": "Avenida Parque Águas Claras, 701 - Norte (Águas Claras), Brasília - DF, CEP 71906-500",
+      "clientCep": "71906-500",
+      "equipmentIds": [],
+      "date": "2026-09-09",
+      "timeWindow": "08:30 - 10:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788603676928",
+      "code": "VIS-2026-618",
+      "clientId": "cli-1788603458376",
+      "clientName": "Marcelo Ivo Silva de lima",
+      "clientPhone": "61 991971261",
+      "clientAddress": "Marcelo Ivo Silva de  SQNW 305 - Bloco H - Yard - Noroeste, 110 - Noroeste , Brasília-DF",
+      "equipmentIds": [
+        "eq-1788603539229"
+      ],
+      "date": "2026-09-08",
+      "timeWindow": "13:30 - 15:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788539772998",
+      "code": "VIS-2026-771",
+      "clientId": "cli-1788539624430",
+      "clientName": "Antonio Batista Reis",
+      "clientPhone": "+55 61 8448-6434",
+      "clientAddress": "Condomínio RK, 15 - Região dos Lagos (Sobradinho), Brasília - DF, CEP 73252-200",
+      "clientCep": "73252-200",
+      "equipmentIds": [
+        "eq-1788539703967"
+      ],
+      "date": "2026-09-05",
+      "timeWindow": "08:30 - 10:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "completar gás, instalação nos padrões de garantia!",
+      "status": "Concluída",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788538167843",
+      "code": "VIS-2026-435",
+      "clientId": "cli-1788538130550",
+      "clientName": "MARCELO NEVES VIDAL",
+      "clientPhone": "61 99147-4091",
+      "clientAddress": "Rodovia DF-250, 04 - Região dos Lagos (Sobradinho), Brasília - DF, CEP 73255-904",
+      "clientCep": "73255-904",
+      "equipmentIds": [],
+      "date": "2026-09-08",
+      "timeWindow": "10:00 - 12:00",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788485188478",
+      "code": "VIS-2026-349",
+      "clientId": "cli-1788485147565",
+      "clientName": "Phisio fisioterapia",
+      "clientPhone": "+55 61 8187-0130",
+      "clientAddress": "Smpw quadra 14 conjunto 02 lote 01 casa F,  - Park Way",
+      "equipmentIds": [],
+      "date": "2026-09-10",
+      "timeWindow": "08:30 - 10:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Higienização e Limpeza Química",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788458093379",
+      "code": "VIS-2026-695",
+      "clientId": "cli-1788450229688",
+      "clientName": "Liliane da Cunha Santos ",
+      "clientPhone": "+55 61 98155-2889",
+      "clientAddress": " Vicente Pires,  - Vicente Pires, Rua 05 chácara 116 Edifício Vogue - lojas no estacionamento",
+      "equipmentIds": [],
+      "date": "2026-09-04",
+      "timeWindow": "10:00 - 12:00",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Manutenção Corretiva / Reparo",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788442847509",
+      "code": "VIS-2026-319",
+      "clientId": "cli-1788440493414",
+      "clientName": "Wellington Campos",
+      "clientPhone": "+55 61 8230-1518",
+      "clientAddress": ",  - ",
+      "equipmentIds": [],
+      "date": "2026-09-03",
+      "timeWindow": "13:30 - 15:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Concluída",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788402541014",
+      "code": "VIS-2026-121",
+      "clientId": "cli-1788402306160",
+      "clientName": "Erique Souza ",
+      "clientPhone": "+55 34 9822-6070",
+      "clientAddress": "Guara 2, 311 - QE 24",
+      "equipmentIds": [],
+      "date": "2026-09-04",
+      "timeWindow": "15:30 - 17:30",
+      "technicianName": "Wellisson Medeiros ",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1788397396439",
+      "code": "VIS-2026-980",
+      "clientId": "cli-1788397279271",
+      "clientName": "Érika Guerrero",
+      "clientPhone": "91 981644230",
+      "clientAddress": "Rua Rua 3 Chácara 88B - Bairro Setor Habitacional Vicente Pires - Brasília - DF, CEP 72005-795",
+      "clientCep": "72005-795",
+      "equipmentIds": [],
+      "date": "2026-09-15",
+      "timeWindow": "08:30 - 10:30",
+      "technicianName": "Wellisson Medeiros ",
+      "serviceType": "Instalação de Equipamento",
+      "reportedIssue": "",
+      "status": "Agendada",
+      "notes": ""
+    },
+    {
+      "id": "vis-1",
+      "code": "VIS-2026-041",
+      "clientId": "cli-1",
+      "clientName": "Padaria & Empório Pão Dourado Ltda",
+      "clientPhone": "(11) 97123-4567",
+      "clientAddress": "Av. Brigadeiro Faria Lima, 1240 - Pinheiros",
+      "equipmentIds": [
+        "eq-2"
+      ],
+      "date": "2026-09-03",
+      "timeWindow": "08:30 - 10:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Higienização e Limpeza Química",
+      "reportedIssue": "Aparelho pingando água pela bandeja de condensado e vazão de ar reduzida.",
+      "status": "Agendada",
+      "notes": "Levar bomba de pressurização para limpeza de serpentina e bactericida hospitalar."
+    },
+    {
+      "id": "vis-2",
+      "code": "VIS-2026-042",
+      "clientId": "cli-3",
+      "clientName": "Supermercado Central da Vila",
+      "clientPhone": "(11) 99182-7744",
+      "clientAddress": "Rua Tito, 430 - Vila Romana",
+      "equipmentIds": [
+        "eq-4"
+      ],
+      "date": "2026-09-03",
+      "timeWindow": "13:30 - 15:30",
+      "technicianName": "Carlos Silva",
+      "serviceType": "Diagnóstico Técnico & Rendimento",
+      "reportedIssue": "Baixo rendimento térmico no salão de vendas e alarme no display da condensadora.",
+      "status": "Agendada",
+      "notes": "Verificar condensador remoto e ventoinha da unidade externa."
+    },
+    {
+      "id": "vis-3",
+      "code": "VIS-2026-039",
+      "clientId": "cli-2",
+      "clientName": "Dra. Camila Vasconcelos (Clínica Odonto)",
+      "clientPhone": "(11) 98844-3321",
+      "clientAddress": "Rua Pamplona, 550 Conj 82 - Jardins",
+      "equipmentIds": [
+        "eq-3"
+      ],
+      "date": "2026-09-02",
+      "timeWindow": "10:00 - 12:00",
+      "technicianName": "Carlos Silva",
+      "serviceType": "Manutenção Preventiva / Higienização",
+      "reportedIssue": "Manutenção periódica preventiva e aferição de temperatura.",
+      "status": "Concluída",
+      "notes": "Higienização com bactericida concluída com sucesso. Medição de delta T = 12°C perfeito.",
+      "completedAt": "2026-09-02 11:45"
+    },
+    {
+      "id": "vis-4",
+      "code": "VIS-2026-044",
+      "clientId": "cli-4",
+      "clientName": "Eduardo Martins (Residencial)",
+      "clientPhone": "(11) 97331-9022",
+      "clientAddress": "Rua Desembargador do Vale, 890 Apto 114 - Perdizes",
+      "equipmentIds": [
+        "eq-5"
+      ],
+      "date": "2026-09-04",
+      "timeWindow": "15:30 - 17:30",
+      "technicianName": "Wellisson Medeiros",
+      "serviceType": "Carga de Gás / Detecção de Vazamento",
+      "reportedIssue": "Evaporadora do quarto master sopra ar morno e acusa erro de sensor.",
+      "status": "Agendada",
+      "notes": "Levar detector eletrônico de vazamento e manifold digital para R-410A."
+    }
+  ],
+  "quotes": [
+    {
+      "id": "orc-1789397914430",
+      "number": "ORC-2026-8413",
+      "clientId": "cli-1788621582062",
+      "clientName": "Betânia ",
+      "clientPhone": "+55 61 8121-2821",
+      "clientEmail": "Betaniapontes@gmail.com",
+      "clientAddress": "Avenida Parque Águas Claras, 701 - Norte (Águas Claras), Brasília - DF, CEP 71906-500",
+      "clientCep": "71906-500",
+      "clientDocument": "700740891-53",
+      "equipmentDescription": "Split Inverter 12.000 BTU",
+      "items": [
+        {
+          "id": "item-1789397911930-1",
+          "type": "Serviço",
+          "description": "Higienização química profunda com bactericida homologado Anvisa",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 280,
+          "total": 280
+        },
+        {
+          "id": "item-1789397911930-2",
+          "type": "Peça / Material",
+          "description": "Pastilha antibacteriana para bandeja de condensado",
+          "quantity": 1,
+          "unit": "un",
+          "unitPrice": 35,
+          "total": 35
+        }
+      ],
+      "subtotal": 315,
+      "discount": 0,
+      "total": 315,
+      "paymentTerms": "À vista via PIX com 5% de desconto ou em até 3x no cartão de crédito",
+      "validityDays": 15,
+      "warrantyTerms": "Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.",
+      "technicianObservations": "Testes de estanqueidade e aferição de rendimento térmico inclusos.",
+      "status": "Aprovado",
+      "createdAt": "2026-09-14",
+      "approvedAt": "2026-09-14T14:59:37.599Z",
+      "signature": {
+        "signedBy": "Betânia",
+        "documentNumber": "700740891-53",
+        "signedAt": "2026-09-14T14:59:37.599Z",
+        "signatureDataUrl": "data:image/png;base64,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",
+        "ipAddress": "2804:7f74:ceb:6800:2d36:8777:858d:853e, 169.254.169.126",
+        "signType": "drawn"
+      }
+    },
+    {
+      "id": "orc-1789397328900",
+      "number": "ORC-2026-9541",
+      "clientId": "cli-1788621582062",
+      "clientName": "Betânia ",
+      "clientPhone": "+55 61 8121-2821",
+      "clientEmail": "Betaniapontes@gmail.com",
+      "clientAddress": "Avenida Parque Águas Claras, 701 - Norte (Águas Claras), Brasília - DF, CEP 71906-500",
+      "clientCep": "71906-500",
+      "clientDocument": "700740891-53",
+      "equipmentDescription": "Split Inverter 12.000 BTU",
+      "items": [
+        {
+          "id": "item-1789397325989-1",
+          "type": "Serviço",
+          "description": "Higienização química profunda com bactericida homologado Anvisa",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 280,
+          "total": 280
+        },
+        {
+          "id": "item-1789397325989-2",
+          "type": "Peça / Material",
+          "description": "Pastilha antibacteriana para bandeja de condensado",
+          "quantity": 1,
+          "unit": "un",
+          "unitPrice": 35,
+          "total": 35
+        }
+      ],
+      "subtotal": 315,
+      "discount": 0,
+      "total": 315,
+      "paymentTerms": "À vista via PIX com 5% de desconto ou em até 3x no cartão de crédito",
+      "validityDays": 15,
+      "warrantyTerms": "Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.",
+      "technicianObservations": "Testes de estanqueidade e aferição de rendimento térmico inclusos.",
+      "status": "Enviado",
+      "createdAt": "2026-09-14"
+    },
+    {
+      "id": "orc-1788401905678",
+      "number": "ORC-2026-6592",
+      "clientId": "cli-1788397279271",
+      "clientName": "Érika Guerrero",
+      "clientPhone": "91 981644230",
+      "clientEmail": "",
+      "clientAddress": "Vicente Pires ",
+      "clientDocument": "",
+      "equipmentDescription": "Split Inverter Electrolux 9.000 BTUs",
+      "items": [
+        {
+          "id": "item-1788401585822-1",
+          "type": "Peça / Material",
+          "description": "Tubulação de cobre 1/4 ",
+          "quantity": 3,
+          "unit": "m",
+          "unitPrice": 22,
+          "total": 66
+        },
+        {
+          "id": "item-1788401585822-2",
+          "type": "Peça / Material",
+          "description": "Tubulação de cobre 3/8",
+          "quantity": 3,
+          "unit": "m",
+          "unitPrice": 36,
+          "total": 108
+        },
+        {
+          "id": "item-1788401788152",
+          "type": "Serviço",
+          "description": "mão de obra instalação ar condicionado Eléctrolux 9.000 BTUs ",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 450,
+          "total": 450
+        }
+      ],
+      "subtotal": 624,
+      "discount": 0,
+      "total": 624,
+      "paymentTerms": "À vista via PIX com 5% de desconto ou em até 3x no cartão de crédito",
+      "validityDays": 10,
+      "warrantyTerms": "Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.",
+      "technicianObservations": "Testes de estanqueidade e aferição de rendimento térmico inclusos.",
+      "status": "Enviado",
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "orc-101",
+      "number": "ORC-2026-101",
+      "clientId": "cli-1",
+      "clientName": "Padaria & Empório Pão Dourado Ltda",
+      "clientPhone": "(11) 97123-4567",
+      "clientEmail": "gerencia@paodourado.com.br",
+      "clientAddress": "Av. Brigadeiro Faria Lima, 1240 - Pinheiros, São Paulo - SP",
+      "clientDocument": "28.114.908/0001-35",
+      "equipmentDescription": "Split Cassete Carrier 36.000 BTU - Salão Principal",
+      "items": [
+        {
+          "id": "item-1",
+          "type": "Serviço",
+          "description": "Higienização química profunda com desmontagem de carenagem, bandeja e turbina",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 420,
+          "total": 420
+        },
+        {
+          "id": "item-2",
+          "type": "Serviço",
+          "description": "Desobstrução e teste de estanqueidade da linha de drenagem por gravidade",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 180,
+          "total": 180
+        },
+        {
+          "id": "item-3",
+          "type": "Peça / Material",
+          "description": "Bactericida e sanitizante hospitalar homologado Anvisa (Air Shield)",
+          "quantity": 1,
+          "unit": "un",
+          "unitPrice": 85,
+          "total": 85
+        }
+      ],
+      "subtotal": 685,
+      "discount": 35,
+      "total": 650,
+      "paymentTerms": "À vista no PIX com 5% de desconto ou em 3x sem juros no cartão de crédito",
+      "validityDays": 15,
+      "warrantyTerms": "Garantia de 90 dias sobre a mão de obra e materiais aplicados.",
+      "technicianObservations": "Recomendamos higienização preventiva trimestral devido ao fluxo constante de clientes e manipulação de alimentos.",
+      "status": "Aprovado",
+      "createdAt": "2026-09-01",
+      "approvedAt": "2026-09-14T14:57:42.892Z",
+      "signature": {
+        "signedBy": "Carlos Eduardo Oliveira",
+        "documentNumber": "123.456.789-00",
+        "signedAt": "2026-09-14T14:57:42.892Z",
+        "signatureDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "ipAddress": "127.0.0.1",
+        "signType": "drawn"
+      }
+    },
+    {
+      "id": "orc-102",
+      "number": "ORC-2026-102",
+      "clientId": "cli-3",
+      "clientName": "Supermercado Central da Vila",
+      "clientPhone": "(11) 99182-7744",
+      "clientEmail": "compras@centraldavila.com.br",
+      "clientAddress": "Rua Tito, 430 - Vila Romana, São Paulo - SP",
+      "clientDocument": "19.452.782/0001-60",
+      "equipmentDescription": "Split Cassete Inverter Daikin 48.000 BTU - Setor de Caixas",
+      "items": [
+        {
+          "id": "item-201",
+          "type": "Serviço",
+          "description": "Substituição de micromotor ventilador e hélice do forçador de ar",
+          "quantity": 2,
+          "unit": "serviço",
+          "unitPrice": 280,
+          "total": 560
+        },
+        {
+          "id": "item-202",
+          "type": "Peça / Material",
+          "description": "Micromotor Eletrônico Bivolt 1/20 HP com suporte universal",
+          "quantity": 2,
+          "unit": "un",
+          "unitPrice": 310,
+          "total": 620
+        },
+        {
+          "id": "item-203",
+          "type": "Serviço",
+          "description": "Recolhimento de fluido, teste de vazamento com nitrogênio e recarga de R-404A",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 450,
+          "total": 450
+        },
+        {
+          "id": "item-204",
+          "type": "Peça / Material",
+          "description": "Fluido Refrigerante Dupont/Freon R-404A (kg)",
+          "quantity": 4,
+          "unit": "kg",
+          "unitPrice": 165,
+          "total": 660
+        }
+      ],
+      "subtotal": 2290,
+      "discount": 90,
+      "total": 2200,
+      "paymentTerms": "Faturado para 15/30 dias no boleto bancário mediante aprovação cadastral",
+      "validityDays": 10,
+      "warrantyTerms": "Garantia de 90 dias em serviços e garantia de 1 ano do fabricante das peças.",
+      "technicianObservations": "Necessário agendamento em horário com baixo movimento na desossa para não interromper a operação comercial.",
+      "status": "Enviado",
+      "createdAt": "2026-09-02"
+    },
+    {
+      "id": "orc-103",
+      "number": "ORC-2026-103",
+      "clientId": "cli-4",
+      "clientName": "Eduardo Martins (Residencial)",
+      "clientPhone": "(11) 97331-9022",
+      "clientEmail": "edu.martins@gmail.com",
+      "clientAddress": "Rua Desembargador do Vale, 890 Apto 114 - Perdizes, São Paulo - SP",
+      "clientDocument": "298.112.348-11",
+      "equipmentDescription": "Multi-Split Inverter Fujitsu 24.000 BTU",
+      "items": [
+        {
+          "id": "item-301",
+          "type": "Serviço",
+          "description": "Localização de microvazamento com contraste UV e pressurização com N2",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 350,
+          "total": 350
+        },
+        {
+          "id": "item-302",
+          "type": "Serviço",
+          "description": "Refazimento de flanges e vácuo profundo abaixo de 500 microns",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 280,
+          "total": 280
+        },
+        {
+          "id": "item-303",
+          "type": "Peça / Material",
+          "description": "Carga completa de fluido ecológico R-410A por balança de precisão",
+          "quantity": 1,
+          "unit": "serviço",
+          "unitPrice": 380,
+          "total": 380
+        }
+      ],
+      "subtotal": 1010,
+      "discount": 30,
+      "total": 980,
+      "paymentTerms": "PIX ou até 4x no cartão de crédito",
+      "validityDays": 15,
+      "warrantyTerms": "Garantia de 90 dias de estanqueidade e funcionamento.",
+      "technicianObservations": "Inclui aferição de superaquecimento e teste elétrico de compressor.",
+      "status": "Rascunho",
+      "createdAt": "2026-09-02"
+    }
+  ],
+  "maintenanceLogs": [
+    {
+      "id": "man-1",
+      "code": "OS-2026-031",
+      "equipmentId": "eq-1",
+      "equipmentName": "Split Piso Teto Inverter Carrier 60.000 BTU (Padaria Pão Dourado)",
+      "clientId": "cli-1",
+      "clientName": "Padaria & Empório Pão Dourado Ltda",
+      "date": "2026-08-10",
+      "technicianName": "Wellisson Medeiros",
+      "type": "Preventiva",
+      "description": "Manutenção preventiva periódica e limpeza do condensador a ar aletado.",
+      "workPerformed": [
+        "Lavagem química e escovação das aletas do condensador",
+        "Verificação do isolamento térmico das linhas de sucção",
+        "Aperto de bornes do quadro elétrico e comando termostático Carel",
+        "Limpeza da calha de degelo e dreno de condensado",
+        "Aferição das pressões de trabalho e temperatura de câmara (+2.5°C)"
+      ],
+      "replacedParts": [],
+      "readings": {
+        "suctionPressurePsi": 28,
+        "dischargePressurePsi": 230,
+        "superheatC": 7.2,
+        "subcoolingC": 4.5,
+        "ambientTempC": 24,
+        "supplyAirTempC": 1.5,
+        "operatingCurrentAmp": 6.8,
+        "voltageV": 220,
+        "gasType": "R-404A"
+      },
+      "observations": "Equipamento operando perfeitamente. Nível de óleo do visor de carter transparente e no meio do visor.",
+      "nextMaintenanceRecommendedDate": "2026-11-10",
+      "status": "Concluído"
+    },
+    {
+      "id": "man-2",
+      "code": "OS-2026-024",
+      "equipmentId": "eq-3",
+      "equipmentName": "Split Inverter Daikin 12.000 BTU R-32 (Clínica Odonto)",
+      "clientId": "cli-2",
+      "clientName": "Dra. Camila Vasconcelos (Clínica Odonto)",
+      "date": "2026-07-20",
+      "technicianName": "Carlos Silva",
+      "type": "Higienização e PMOC",
+      "description": "Higienização semestral antibacteriana e antifúngica de acordo com o plano PMOC.",
+      "workPerformed": [
+        "Descontaminação da serpentina com produto homologado pela Anvisa",
+        "Desinfecção dos filtros de ar e bandeja coletora de água",
+        "Aplicação de pastilha bioestática no dreno contra limo",
+        "Inspeção do rotor da turbina e rolamentos"
+      ],
+      "replacedParts": [
+        {
+          "name": "Pastilha bactericida Air Guard para dreno",
+          "quantity": 2,
+          "unitPrice": 25
+        }
+      ],
+      "readings": {
+        "suctionPressurePsi": 115,
+        "superheatC": 5.8,
+        "ambientTempC": 23,
+        "supplyAirTempC": 11.2,
+        "operatingCurrentAmp": 3.9,
+        "voltageV": 220,
+        "gasType": "R-32"
+      },
+      "observations": "Delta T medido em 11.8°C (excelente rendimento térmico). Equipamento silencioso.",
+      "nextMaintenanceRecommendedDate": "2026-10-20",
+      "status": "Concluído"
+    }
+  ],
+  "companySettings": {
+    "companyName": "Ar Soluções - Climatização Especializada",
+    "tradeName": "Ar Soluções Climatização",
+    "cnpj": "60.768.974/0001-41",
+    "phone": "(61) 992848993",
+    "email": "arsolucoesdf@gmail.com",
+    "address": "710 Asa Norte, Brasília - DF",
+    "technicianResponsible": "Wellisson Medeiros",
+    "pixKey": "60.768.974/0001-41",
+    "defaultWarranty": "Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico."
+  }
+}

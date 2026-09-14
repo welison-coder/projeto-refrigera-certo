@@ -129,13 +129,10 @@ export const LoginScreen: React.FC = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         {/* Brand Header */}
-        <div className="inline-flex p-3 rounded-2xl bg-white shadow-xl border border-white/20 mb-4 items-center justify-center">
-          <BrandLogo size="lg" theme="light" />
+        <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-white shadow-xl border border-white/20 mb-3 items-center justify-center">
+          <BrandLogo size="lg" />
         </div>
-        <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
-          Refrigera Certo
-        </h1>
-        <p className="mt-1 text-sm text-slate-300">
+        <p className="text-sm font-medium text-slate-300">
           Sistema Profissional de Gestão Técnica & PMOC
         </p>
       </div>

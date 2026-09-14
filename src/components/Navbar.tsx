@@ -54,15 +54,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Official Logo & Brand */}
           <div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center cursor-pointer group"
             onClick={() => setActiveTab('dashboard')}
-            title="Ir para o Painel Principal - Refrigera Certo"
+            title="Ir para o Painel Principal - Ar Soluções Climatização"
           >
-            <div className="bg-white px-3 py-1.5 rounded-xl shadow-xs border border-white/20 flex items-center gap-2 group-hover:bg-sky-50 transition-colors">
-              <BrandLogo size="sm" theme="light" />
-              <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 hidden sm:inline-block">
-                Pro
-              </span>
+            <div className="bg-white px-2.5 py-1.5 rounded-xl shadow-xs border border-white/20 flex items-center group-hover:bg-slate-50 transition-colors">
+              <BrandLogo size="sm" />
             </div>
           </div>
 

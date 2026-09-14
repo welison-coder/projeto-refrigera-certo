@@ -10,8 +10,9 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  // Port configuration: Hostinger provides dynamic port in process.env.PORT, defaults to 3000 for AI Studio container
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  // Port configuration: AI Studio reverse proxy exclusively routes to port 3000
+  // In production (Hostinger / Docker), process.env.PORT can be respected if provided
+  const PORT = process.env.NODE_ENV === 'production' && process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   // Security headers & basic rate mitigation
   app.use((req, res, next) => {
@@ -29,7 +30,7 @@ async function startServer() {
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'ok',
-      service: 'Refrigera Certo - Climatização API',
+      service: 'Ar Soluções - Climatização API',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
@@ -244,6 +245,135 @@ async function startServer() {
     }
   });
 
+  // ========================================================
+  // 4. PUBLIC DOCUMENT ACCESS & CLIENT DIGITAL SIGNATURE
+  // (Permite que o cliente visualize e assine sem acesso ao sistema)
+  // ========================================================
+
+  // GET /api/public/document/:id - Consulta pública e segura de documento
+  app.get('/api/public/document/:id', (req, res) => {
+    try {
+      const docId = decodeURIComponent(req.params.id);
+      const data = readCompanyData();
+      if (!data) {
+        return res.status(404).json({ found: false, error: 'Base de dados indisponível no momento.' });
+      }
+
+      // 1. Procurar em Orçamentos
+      const quotes = Array.isArray(data.quotes) ? data.quotes : [];
+      const quote = quotes.find((q: any) => q.id === docId || q.number?.toLowerCase() === docId.toLowerCase());
+      if (quote) {
+        return res.json({
+          found: true,
+          type: 'quote',
+          document: quote,
+          companySettings: data.companySettings || null,
+        });
+      }
+
+      // 2. Procurar em Ordens de Serviço / Manutenções
+      const logs = Array.isArray(data.maintenanceLogs) ? data.maintenanceLogs : [];
+      const log = logs.find((l: any) => l.id === docId || l.code?.toLowerCase() === docId.toLowerCase());
+      if (log) {
+        return res.json({
+          found: true,
+          type: 'maintenance',
+          document: log,
+          companySettings: data.companySettings || null,
+        });
+      }
+
+      res.status(404).json({ found: false, error: 'Documento não localizado ou código inválido.' });
+    } catch (err: any) {
+      console.error('Erro em GET /api/public/document/:id:', err);
+      res.status(500).json({ found: false, error: 'Erro ao buscar documento.' });
+    }
+  });
+
+  // POST /api/public/document/:id/sign - Assinatura digital do cliente
+  app.post('/api/public/document/:id/sign', (req, res) => {
+    try {
+      const docId = decodeURIComponent(req.params.id);
+      const { signedBy, documentNumber, signatureDataUrl, signType } = req.body;
+
+      if (!signedBy || typeof signedBy !== 'string' || !signedBy.trim()) {
+        return res.status(400).json({ success: false, error: 'O nome do assinante é obrigatório.' });
+      }
+
+      const data = readCompanyData();
+      if (!data) {
+        return res.status(500).json({ success: false, error: 'Dados não encontrados.' });
+      }
+
+      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '';
+      const now = new Date().toISOString();
+
+      const signature = {
+        signedBy: signedBy.trim(),
+        documentNumber: documentNumber ? String(documentNumber).trim() : '',
+        signedAt: now,
+        signatureDataUrl: signatureDataUrl || '',
+        ipAddress: clientIp,
+        signType: signType === 'typed' ? 'typed' : 'drawn',
+      };
+
+      let updatedDoc: any = null;
+      let docType: 'quote' | 'maintenance' | null = null;
+
+      // Check quotes
+      if (Array.isArray(data.quotes)) {
+        const quoteIndex = data.quotes.findIndex((q: any) => q.id === docId || q.number?.toLowerCase() === docId.toLowerCase());
+        if (quoteIndex !== -1) {
+          data.quotes[quoteIndex] = {
+            ...data.quotes[quoteIndex],
+            status: 'Aprovado',
+            approvedAt: now,
+            signature,
+          };
+          updatedDoc = data.quotes[quoteIndex];
+          docType = 'quote';
+        }
+      }
+
+      // Check maintenance logs
+      if (!updatedDoc && Array.isArray(data.maintenanceLogs)) {
+        const logIndex = data.maintenanceLogs.findIndex((l: any) => l.id === docId || l.code?.toLowerCase() === docId.toLowerCase());
+        if (logIndex !== -1) {
+          data.maintenanceLogs[logIndex] = {
+            ...data.maintenanceLogs[logIndex],
+            status: 'Concluído',
+            signature,
+          };
+          updatedDoc = data.maintenanceLogs[logIndex];
+          docType = 'maintenance';
+        }
+      }
+
+      if (!updatedDoc) {
+        return res.status(404).json({ success: false, error: 'Documento não encontrado para assinatura.' });
+      }
+
+      data.version = (data.version || 0) + 1;
+      data.lastUpdated = now;
+
+      const saved = saveCompanyData(data);
+      if (saved) {
+        res.json({
+          success: true,
+          message: 'Documento assinado com sucesso pelo cliente!',
+          type: docType,
+          document: updatedDoc,
+          version: data.version,
+        });
+      } else {
+        res.status(500).json({ success: false, error: 'Falha ao gravar assinatura no servidor.' });
+      }
+    } catch (err: any) {
+      console.error('Erro em POST /api/public/document/:id/sign:', err);
+      res.status(500).json({ success: false, error: 'Erro ao processar assinatura.' });
+    }
+  });
+
   // 404 for unmatched API routes
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: 'Endpoint de API não encontrado.' });
@@ -252,6 +382,9 @@ async function startServer() {
   // ==========================================
   // 3. FRONTEND SERVING (VITE / STATIC)
   // ==========================================
+  // Serve public assets (images, logos, icons) directly
+  app.use(express.static(path.join(process.cwd(), 'public')));
+
   if (process.env.NODE_ENV !== 'production') {
     // Development mode (AI Studio and local development)
     const vite = await createViteServer({
@@ -294,7 +427,7 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(
-      `[Refrigera Certo] Servidor operacional em http://0.0.0.0:${PORT} (Ambiente: ${process.env.NODE_ENV || 'development'})`
+      `[Ar Soluções] Servidor operacional em http://0.0.0.0:${PORT} (Ambiente: ${process.env.NODE_ENV || 'development'})`
     );
   });
 }

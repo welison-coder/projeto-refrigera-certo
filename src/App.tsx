@@ -18,6 +18,7 @@ import { ClientsEquipmentView } from './components/ClientsEquipmentView';
 import { CompanyModal } from './components/CompanyModal';
 import { ReminderModal } from './components/ReminderModal';
 import { BrandLogo } from './components/BrandLogo';
+import { PublicSignaturePortal } from './components/PublicSignaturePortal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function MainApp() {
@@ -407,7 +408,7 @@ function MainApp() {
             <BrandLogo size="xs" theme="light" />
             <span className="text-slate-300 hidden sm:inline">•</span>
             <p>
-              © {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Refrigera Certo'}</strong> — Climatização Especializada
+              © {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Ar Soluções Climatização'}</strong> — Climatização Especializada
             </p>
           </div>
           <p className="text-[11px] text-slate-400">
@@ -439,6 +440,80 @@ function MainApp() {
 }
 
 export default function App() {
+  const [signatureDocInfo, setSignatureDocInfo] = useState<{
+    docId: string;
+    docType: 'quote' | 'maintenance';
+  } | null>(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const assinarQuote = searchParams.get('assinar') || searchParams.get('orcamento') || searchParams.get('doc');
+      if (assinarQuote) {
+        return { docId: assinarQuote, docType: 'quote' };
+      }
+      const assinarOs = searchParams.get('assinar_os') || searchParams.get('os');
+      if (assinarOs) {
+        return { docId: assinarOs, docType: 'maintenance' };
+      }
+
+      // Hash fallback e.g. #assinar=ORC-1085
+      if (window.location.hash) {
+        const hash = window.location.hash.replace('#', '');
+        const hashParams = new URLSearchParams(hash);
+        const hQuote = hashParams.get('assinar') || hashParams.get('doc');
+        if (hQuote) return { docId: hQuote, docType: 'quote' };
+        const hOs = hashParams.get('assinar_os') || hashParams.get('os');
+        if (hOs) return { docId: hOs, docType: 'maintenance' };
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+    return null;
+  });
+
+  // Keep in sync with history navigation (back/forward)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const assinarQuote = searchParams.get('assinar') || searchParams.get('orcamento') || searchParams.get('doc');
+        if (assinarQuote) {
+          setSignatureDocInfo({ docId: assinarQuote, docType: 'quote' });
+          return;
+        }
+        const assinarOs = searchParams.get('assinar_os') || searchParams.get('os');
+        if (assinarOs) {
+          setSignatureDocInfo({ docId: assinarOs, docType: 'maintenance' });
+          return;
+        }
+        setSignatureDocInfo(null);
+      } catch {
+        setSignatureDocInfo(null);
+      }
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
+
+  // Se o cliente acessou o link de assinatura, exibe EXCLUSIVAMENTE o portal do cliente
+  // sem exibir navbar, abas administrativas, nem dar acesso ao sistema interno.
+  if (signatureDocInfo) {
+    return (
+      <PublicSignaturePortal
+        docId={signatureDocInfo.docId}
+        docTypeParam={signatureDocInfo.docType}
+        onClosePortal={() => {
+          window.history.pushState({}, '', window.location.pathname);
+          setSignatureDocInfo(null);
+        }}
+      />
+    );
+  }
+
   return (
     <AuthProvider>
       <MainApp />
