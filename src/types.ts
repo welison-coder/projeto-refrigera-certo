@@ -19,7 +19,9 @@ export interface Client {
     city: string;
     complement?: string;
     zipCode?: string;
+    locationUrl?: string; // Link direto do Google Maps, Waze ou coordenadas
   };
+  locationUrl?: string; // Link de localização / rota GPS
   notes?: string;
   createdAt: string;
 }
@@ -49,6 +51,7 @@ export interface TechnicalVisit {
   clientPhone: string;
   clientAddress: string;
   clientCep?: string; // CEP for pinpoint GPS navigation & routing
+  clientLocationUrl?: string; // Link direto de rota / GPS (Google Maps, Waze, etc.)
   equipmentIds: string[];
   date: string; // YYYY-MM-DD
   timeWindow: string; // '08:00 - 10:00', '10:00 - 12:00', '13:30 - 15:30', '15:30 - 18:00'
@@ -90,6 +93,7 @@ export interface Quote {
   clientEmail: string;
   clientAddress: string;
   clientCep?: string;
+  clientLocationUrl?: string; // Link direto de rota / GPS do cliente
   clientDocument: string;
   equipmentDescription: string;
   items: QuoteItem[];

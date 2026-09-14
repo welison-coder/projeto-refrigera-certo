@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { TechnicalVisit, CompanySettings } from '../types';
 import { formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
-import { getGoogleMapsRouteUrl, getWazeRouteUrl, getAppleMapsRouteUrl, getAndroidGeoUrl, isIOS } from '../utils/navigation';
+import { getGoogleMapsRouteUrl, getWazeRouteUrl, getAppleMapsRouteUrl, getAndroidGeoUrl, isIOS, normalizeLocationUrl } from '../utils/navigation';
 import {
   generateGoogleCalendarUrl,
   downloadICSFile,
@@ -163,6 +163,24 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
             </span>
             <span className="text-[10px] text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-semibold">1 Toque no Celular</span>
           </div>
+
+          {visit.clientLocationUrl && (
+            <div className="mb-2.5">
+              <a
+                id="btn-navigate-direct-location"
+                href={normalizeLocationUrl(visit.clientLocationUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold shadow-2xs transition-colors"
+                title="Abrir rota direta cadastrada do cliente"
+              >
+                <MapPin className="w-4 h-4 text-emerald-200 shrink-0" />
+                <span>Abrir Rota Direta do Cliente</span>
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
+              </a>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <a
               id="btn-navigate-google-maps"

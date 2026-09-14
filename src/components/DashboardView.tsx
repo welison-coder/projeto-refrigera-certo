@@ -280,14 +280,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           CEP: {visit.clientCep}
                         </span>
                       )}
+                      {visit.clientLocationUrl && (
+                        <span className="shrink-0 px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
+                          ● Rota Direta
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
-                    {/* 1-Click GPS Navigation Button with CEP */}
+                    {/* 1-Click GPS Navigation Button with CEP and Location Link */}
                     <RouteButton
                       address={visit.clientAddress}
                       cep={visit.clientCep}
+                      locationUrl={visit.clientLocationUrl}
                       size="sm"
                       variant="primary"
                     />

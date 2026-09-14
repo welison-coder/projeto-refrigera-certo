@@ -16,13 +16,15 @@ import {
   Smartphone,
   Navigation,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { TechnicalVisit, VisitStatus, Client, Equipment, CompanySettings } from '../types';
 import { formatDateBR, createWhatsAppLink, generateVisitConfirmationMessage } from '../utils/formatters';
 import { generateGoogleCalendarUrl, downloadICSFile } from '../utils/calendarReminder';
 import { RouteButton } from './RouteButton';
-import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 
 interface VisitsViewProps {
@@ -59,6 +61,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   const [formClientPhone, setFormClientPhone] = useState<string>('');
   const [formClientCep, setFormClientCep] = useState<string>('');
   const [formClientAddress, setFormClientAddress] = useState<string>('');
+  const [formClientLocationUrl, setFormClientLocationUrl] = useState<string>('');
   const [formEquipmentIds, setFormEquipmentIds] = useState<string[]>([]);
   const [formDate, setFormDate] = useState<string>('2026-09-03');
   const [formTimeWindow, setFormTimeWindow] = useState<string>('08:30 - 10:30');
@@ -142,6 +145,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       setFormClientCep(first.address.zipCode || '');
       const addrWithCep = `${first.address.street}, ${first.address.number} - ${first.address.neighborhood}${first.address.city ? `, ${first.address.city}` : ''}${first.address.zipCode ? `, CEP ${first.address.zipCode}` : ''}`;
       setFormClientAddress(addrWithCep);
+      setFormClientLocationUrl(first.address.locationUrl || first.locationUrl || '');
       const clientEquip = equipment.filter(e => e.clientId === first.id);
       setFormEquipmentIds(clientEquip.length > 0 ? [clientEquip[0].id] : []);
     } else {
@@ -150,6 +154,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       setFormClientPhone('');
       setFormClientCep('');
       setFormClientAddress('');
+      setFormClientLocationUrl('');
       setFormEquipmentIds([]);
     }
     setFormDate(new Date().toISOString().slice(0, 10));
@@ -170,6 +175,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
     setFormClientPhone(visit.clientPhone);
     setFormClientCep(visit.clientCep || '');
     setFormClientAddress(visit.clientAddress);
+    setFormClientLocationUrl(visit.clientLocationUrl || '');
     setFormEquipmentIds(visit.equipmentIds || []);
     setFormDate(visit.date);
     setFormTimeWindow(visit.timeWindow);
@@ -190,6 +196,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       setFormClientCep(selected.address.zipCode || '');
       const addrWithCep = `${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}${selected.address.city ? `, ${selected.address.city}` : ''}${selected.address.zipCode ? `, CEP ${selected.address.zipCode}` : ''}`;
       setFormClientAddress(addrWithCep);
+      setFormClientLocationUrl(selected.address.locationUrl || selected.locationUrl || '');
       const clientEquip = equipment.filter(e => e.clientId === selected.id);
       setFormEquipmentIds(clientEquip.length > 0 ? [clientEquip[0].id] : []);
     }
@@ -210,6 +217,7 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
       clientPhone: formClientPhone,
       clientAddress: formClientAddress,
       clientCep: formClientCep.trim() || undefined,
+      clientLocationUrl: formClientLocationUrl.trim() || undefined,
       equipmentIds: formEquipmentIds,
       date: formDate,
       timeWindow: formTimeWindow,
@@ -398,6 +406,22 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                             <span className="text-[10px] text-emerald-600 font-medium">● Rota Otimizada</span>
                           </div>
                         )}
+
+                        {visit.clientLocationUrl && (
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <a
+                              href={normalizeLocationUrl(visit.clientLocationUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-semibold transition-colors shadow-2xs"
+                              title="Abrir rota exata cadastrada do cliente"
+                            >
+                              <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span>Link de Rota Cadastrado</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-emerald-600" />
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -441,10 +465,11 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                 {/* Card Footer Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {/* 1-Click GPS Navigation Button with CEP */}
+                    {/* 1-Click GPS Navigation Button with CEP and Location Link */}
                     <RouteButton
                       address={visit.clientAddress}
                       cep={visit.clientCep}
+                      locationUrl={visit.clientLocationUrl}
                       size="sm"
                       variant="primary"
                     />
@@ -654,6 +679,73 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                     placeholder="Rua, número, bairro, cidade"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
                   />
+                </div>
+
+                {/* Location Link Input / Generator in Visit Modal */}
+                <div className="pt-2 border-t border-slate-200/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Navigation className="w-3.5 h-3.5 text-emerald-600" />
+                      Link de Localização / Rota do Cliente (Google Maps / Waze)
+                    </label>
+                    {formClientLocationUrl.trim() && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full">
+                        Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mb-1 leading-snug">
+                    Link de rota direto do cliente (ex: compartilhado via WhatsApp). O botão de rota abrirá este destino diretamente.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={formClientLocationUrl}
+                      onChange={(e) => setFormClientLocationUrl(e.target.value)}
+                      placeholder="Ex: https://maps.app.goo.gl/... ou https://waze.com/ul?..."
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-sky-500 bg-white"
+                    />
+                    {formClientLocationUrl.trim() && (
+                      <a
+                        href={normalizeLocationUrl(formClientLocationUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+                        title="Testar link de localização"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Testar</span>
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!formClientAddress.trim()) {
+                          alert('Preencha o endereço completo primeiro para gerar a rota.');
+                          return;
+                        }
+                        const generatedUrl = getGoogleMapsRouteUrl(formClientAddress, formClientCep);
+                        setFormClientLocationUrl(generatedUrl);
+                      }}
+                      className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                      title="Gerar rota do Google Maps com base no endereço digitado"
+                    >
+                      <Sparkles className="w-3 h-3 text-sky-600" />
+                      <span>Gerar Link Google Maps pelo Endereço</span>
+                    </button>
+                    {formClientLocationUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormClientLocationUrl('')}
+                        className="text-[11px] text-slate-500 hover:text-rose-600 underline"
+                      >
+                        Limpar link
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 

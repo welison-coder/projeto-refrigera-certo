@@ -16,12 +16,14 @@ import {
   Navigation,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { Client, Equipment, EquipmentStatus } from '../types';
 import { formatDateBR } from '../utils/formatters';
 import { RouteButton } from './RouteButton';
-import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 
 interface ClientsEquipmentViewProps {
@@ -62,6 +64,7 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
   const [clientFormNumber, setClientFormNumber] = useState<string>('');
   const [clientFormNeighborhood, setClientFormNeighborhood] = useState<string>('');
   const [clientFormCity, setClientFormCity] = useState<string>('São Paulo - SP');
+  const [clientFormLocationUrl, setClientFormLocationUrl] = useState<string>('');
   const [clientFormNotes, setClientFormNotes] = useState<string>('');
   
   // CEP lookup state
@@ -97,6 +100,7 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setClientFormNumber('');
     setClientFormNeighborhood('');
     setClientFormCity('São Paulo - SP');
+    setClientFormLocationUrl('');
     setClientFormNotes('');
     setCepStatus({ type: 'idle' });
     setIsClientModalOpen(true);
@@ -113,6 +117,7 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setClientFormNumber(c.address.number);
     setClientFormNeighborhood(c.address.neighborhood);
     setClientFormCity(c.address.city);
+    setClientFormLocationUrl(c.address.locationUrl || c.locationUrl || '');
     setClientFormNotes(c.notes || '');
     setCepStatus({ type: 'idle' });
     setIsClientModalOpen(true);
@@ -189,8 +194,10 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
         number: clientFormNumber,
         neighborhood: clientFormNeighborhood,
         city: clientFormCity,
-        zipCode: clientFormZipCode.trim() || undefined
+        zipCode: clientFormZipCode.trim() || undefined,
+        locationUrl: clientFormLocationUrl.trim() || undefined
       },
+      locationUrl: clientFormLocationUrl.trim() || undefined,
       notes: clientFormNotes,
       createdAt: editingClient ? editingClient.createdAt : new Date().toISOString().slice(0, 10)
     };
@@ -422,6 +429,23 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                             <span className="text-[10px] text-emerald-600 font-medium">● GPS Otimizado</span>
                           </div>
                         )}
+
+                        {/* Location Link Badge if saved */}
+                        {(client.address.locationUrl || client.locationUrl) && (
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <a
+                              href={normalizeLocationUrl(client.address.locationUrl || client.locationUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] font-semibold transition-colors shadow-2xs"
+                              title="Abrir link de rota/localização exata cadastrada do cliente"
+                            >
+                              <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span>Link de Rota Cadastrado</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-emerald-600" />
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -464,10 +488,11 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 {/* Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    {/* 1-Click Route button with CEP for pinpoint accuracy */}
+                    {/* 1-Click Route button with CEP and optional custom Location Link */}
                     <RouteButton
                       address={fullAddress}
                       cep={client.address.zipCode}
+                      locationUrl={client.address.locationUrl || client.locationUrl}
                       size="sm"
                       variant="primary"
                     />
@@ -741,6 +766,79 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                       placeholder="Cidade - UF"
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-sky-500 bg-white"
                     />
+                  </div>
+                </div>
+
+                {/* Location Link Input / Generator */}
+                <div className="pt-2 border-t border-slate-200/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Navigation className="w-3.5 h-3.5 text-emerald-600" />
+                      Link de Localização / Rota GPS (Google Maps / Waze / Ponto)
+                    </label>
+                    {clientFormLocationUrl.trim() && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full">
+                        Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mb-1.5 leading-snug">
+                    Cole o link do Google Maps, Waze ou marcador enviado pelo cliente no WhatsApp para traçar a rota exata.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={clientFormLocationUrl}
+                      onChange={(e) => setClientFormLocationUrl(e.target.value)}
+                      placeholder="Ex: https://maps.app.goo.gl/... ou https://waze.com/ul?..."
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-sky-500 bg-white"
+                    />
+                    {clientFormLocationUrl.trim() && (
+                      <a
+                        href={normalizeLocationUrl(clientFormLocationUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+                        title="Abrir e testar o link de rota cadastrado"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Testar</span>
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addrParts = [
+                          clientFormStreet,
+                          clientFormNumber,
+                          clientFormNeighborhood,
+                          clientFormCity
+                        ].filter(Boolean).join(', ');
+                        if (!addrParts) {
+                          alert('Preencha os campos de rua e cidade primeiro para gerar o link.');
+                          return;
+                        }
+                        const generatedUrl = getGoogleMapsRouteUrl(addrParts, clientFormZipCode);
+                        setClientFormLocationUrl(generatedUrl);
+                      }}
+                      className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1"
+                      title="Preencher automaticamente com o link do Google Maps baseado no endereço acima"
+                    >
+                      <Sparkles className="w-3 h-3 text-sky-600" />
+                      <span>Gerar Link Google Maps pelo Endereço</span>
+                    </button>
+                    {clientFormLocationUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setClientFormLocationUrl('')}
+                        className="text-[11px] text-slate-500 hover:text-rose-600 underline"
+                      >
+                        Limpar link
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

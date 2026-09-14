@@ -18,6 +18,28 @@ export function cleanAddressForGps(address: string): string {
 }
 
 /**
+ * Normalizes a custom location link (Google Maps shortlink, Waze, coordinates, pin)
+ * into a safe, full-protocol URL that opens in mobile and desktop browsers/apps.
+ */
+export function normalizeLocationUrl(input?: string): string {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  // Check if it's raw coordinates like "-15.7942, -47.8821"
+  const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+  if (coordsRegex.test(trimmed)) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+/**
  * Builds the optimal GPS destination query string, cleaned of internal building noise
  * and with postal code (CEP) included for pinpoint neighborhood block routing.
  */

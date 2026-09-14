@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Quote, QuoteItem, QuoteStatus, Client, CompanySettings, TechnicalVisit } from '../types';
 import { formatCurrency, formatDateBR, createWhatsAppLink, generateQuoteWhatsAppMessage } from '../utils/formatters';
-import { getGoogleMapsRouteUrl } from '../utils/navigation';
+import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation';
 import { BrandLogo } from './BrandLogo';
 import { RouteButton } from './RouteButton';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
@@ -73,6 +73,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   const [formClientEmail, setFormClientEmail] = useState<string>('');
   const [formClientCep, setFormClientCep] = useState<string>('');
   const [formClientAddress, setFormClientAddress] = useState<string>('');
+  const [formClientLocationUrl, setFormClientLocationUrl] = useState<string>('');
   const [formClientDocument, setFormClientDocument] = useState<string>('');
   const [formEquipmentDescription, setFormEquipmentDescription] = useState<string>('');
   const [formItems, setFormItems] = useState<QuoteItem[]>([]);
@@ -154,6 +155,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       setFormClientEmail(first.email);
       setFormClientCep(first.address.zipCode || '');
       setFormClientAddress(`${first.address.street}, ${first.address.number} - ${first.address.neighborhood}, ${first.address.city}${first.address.zipCode ? `, CEP ${first.address.zipCode}` : ''}`);
+      setFormClientLocationUrl(first.address.locationUrl || first.locationUrl || '');
       setFormClientDocument(first.document);
     } else {
       setFormClientId('');
@@ -162,6 +164,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       setFormClientEmail('');
       setFormClientCep('');
       setFormClientAddress('');
+      setFormClientLocationUrl('');
       setFormClientDocument('');
     }
     setFormEquipmentDescription('Split Inverter 12.000 BTU');
@@ -203,6 +206,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
     setFormClientEmail(quote.clientEmail);
     setFormClientCep(quote.clientCep || '');
     setFormClientAddress(quote.clientAddress);
+    setFormClientLocationUrl(quote.clientLocationUrl || '');
     setFormClientDocument(quote.clientDocument);
     setFormEquipmentDescription(quote.equipmentDescription);
     setFormItems([...quote.items]);
@@ -224,6 +228,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       setFormClientEmail(selected.email);
       setFormClientCep(selected.address.zipCode || '');
       setFormClientAddress(`${selected.address.street}, ${selected.address.number} - ${selected.address.neighborhood}, ${selected.address.city}${selected.address.zipCode ? `, CEP ${selected.address.zipCode}` : ''}`);
+      setFormClientLocationUrl(selected.address.locationUrl || selected.locationUrl || '');
       setFormClientDocument(selected.document);
     }
   };
@@ -290,6 +295,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       clientEmail: formClientEmail,
       clientAddress: formClientAddress,
       clientCep: formClientCep.trim() || undefined,
+      clientLocationUrl: formClientLocationUrl.trim() || undefined,
       clientDocument: formClientDocument,
       equipmentDescription: formEquipmentDescription,
       items: formItems,
@@ -460,6 +466,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                         <RouteButton
                           address={quote.clientAddress}
                           cep={quote.clientCep}
+                          locationUrl={quote.clientLocationUrl}
                           size="sm"
                           variant="outline"
                         />
@@ -750,6 +757,35 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                       placeholder="Av. Paulista, 1000 - Bela Vista, São Paulo - SP"
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-sky-500"
                     />
+                  </div>
+
+                  {/* Location Link for Quote */}
+                  <div className="pt-2 border-t border-slate-200/80">
+                    <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                      <Navigation className="w-3.5 h-3.5 text-emerald-600" />
+                      Link de Localização / Rota do Cliente
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={formClientLocationUrl}
+                        onChange={(e) => setFormClientLocationUrl(e.target.value)}
+                        placeholder="Ex: https://maps.app.goo.gl/... ou link do Waze"
+                        className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-sky-500"
+                      />
+                      {formClientLocationUrl.trim() && (
+                        <a
+                          href={normalizeLocationUrl(formClientLocationUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+                          title="Testar link de localização"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Testar</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

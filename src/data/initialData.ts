@@ -25,8 +25,10 @@ export const initialClients: Client[] = [
       neighborhood: 'Pinheiros',
       city: 'São Paulo - SP',
       complement: 'Loja Térrea',
-      zipCode: '01451-001'
+      zipCode: '01451-001',
+      locationUrl: 'https://maps.google.com/?q=Av.+Brigadeiro+Faria+Lima,+1240,+Pinheiros,+São+Paulo+-+SP'
     },
+    locationUrl: 'https://maps.google.com/?q=Av.+Brigadeiro+Faria+Lima,+1240,+Pinheiros,+São+Paulo+-+SP',
     notes: 'Acesso para manutenção preferencialmente antes das 08:30 ou após as 14:00.',
     createdAt: '2026-01-15'
   },
