@@ -138,7 +138,7 @@ export function generateSampleLabelPhoto(params: {
         ✓ REGISTRO TÉCNICO VERIFICADO EM CAMPO
       </text>
       <text x="620" y="20" text-anchor="end" font-family="monospace" font-size="11" fill="#94a3b8">
-        LAUDO REFRIGERA CERTO
+        LAUDO AR SOLUÇÕES
       </text>
     </g>
   </g>

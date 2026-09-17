@@ -1,6 +1,6 @@
 {
-  "name": "Refrigera Certo",
-  "description": "Sistema profissional de gestão para Ar Soluções Climatização: Assistente Inteligente por Voz, cadastro e registro fotográfico de equipamentos (etiqueta técnica e instalação), visitas técnicas, orçamentos e PMOC.",
+  "name": "Ar Soluções",
+  "description": "Sistema profissional de gestão para Ar Soluções Climatização (desde 2013): Assistente Inteligente por Voz, cadastro e registro fotográfico de equipamentos (etiqueta técnica e instalação), visitas técnicas, orçamentos e PMOC.",
   "requestFramePermissions": [
     "microphone"
   ],

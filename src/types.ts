@@ -159,6 +159,7 @@ export interface CompanySettings {
   pixKey?: string;
   defaultWarranty: string;
   logoUrl?: string;
+  foundingYear?: number;
 }
 
 export interface UserProfile {

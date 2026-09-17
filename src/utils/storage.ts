@@ -16,6 +16,15 @@ import {
 } from '../data/initialData';
 
 const STORAGE_KEYS = {
+  CLIENTS: 'ar_solucoes_clients',
+  EQUIPMENT: 'ar_solucoes_equipment',
+  VISITS: 'ar_solucoes_visits',
+  QUOTES: 'ar_solucoes_quotes',
+  MAINTENANCE_LOGS: 'ar_solucoes_maintenance',
+  COMPANY_SETTINGS: 'ar_solucoes_company'
+};
+
+const LEGACY_STORAGE_KEYS = {
   CLIENTS: 'refrigera_certo_clients',
   EQUIPMENT: 'refrigera_certo_equipment',
   VISITS: 'refrigera_certo_visits',
@@ -26,7 +35,19 @@ const STORAGE_KEYS = {
 
 function getStoredItem<T>(key: string, fallback: T): T {
   try {
-    const item = localStorage.getItem(key);
+    let item = localStorage.getItem(key);
+    // Migração transparente de chaves legadas se existirem
+    if (!item) {
+      const legacyKey = Object.entries(STORAGE_KEYS).find(([, v]) => v === key)?.[0];
+      if (legacyKey && LEGACY_STORAGE_KEYS[legacyKey as keyof typeof LEGACY_STORAGE_KEYS]) {
+        const legacyVal = localStorage.getItem(LEGACY_STORAGE_KEYS[legacyKey as keyof typeof LEGACY_STORAGE_KEYS]);
+        if (legacyVal) {
+          item = legacyVal;
+          localStorage.setItem(key, legacyVal);
+          localStorage.removeItem(LEGACY_STORAGE_KEYS[legacyKey as keyof typeof LEGACY_STORAGE_KEYS]);
+        }
+      }
+    }
     if (!item) return fallback;
     return JSON.parse(item);
   } catch (error) {
@@ -213,6 +234,10 @@ export const storage = {
         settings.pixKey = '60.768.974/0001-41';
         changed = true;
       }
+      if (!settings.foundingYear || settings.foundingYear !== 2013) {
+        settings.foundingYear = 2013;
+        changed = true;
+      }
       if (settings.companyName && (settings.companyName.includes('Refrigera Certo') || settings.companyName.includes('Refrigeração'))) {
         settings.companyName = 'Ar Soluções - Climatização Especializada';
         settings.tradeName = 'Ar Soluções Climatização';
@@ -235,16 +260,14 @@ export const storage = {
   saveCompanySettings: (settings: CompanySettings) => setStoredItem(STORAGE_KEYS.COMPANY_SETTINGS, settings),
 
   resetToDefault: () => {
-    localStorage.removeItem(STORAGE_KEYS.CLIENTS);
-    localStorage.removeItem(STORAGE_KEYS.EQUIPMENT);
-    localStorage.removeItem(STORAGE_KEYS.VISITS);
-    localStorage.removeItem(STORAGE_KEYS.QUOTES);
-    localStorage.removeItem(STORAGE_KEYS.MAINTENANCE_LOGS);
-    localStorage.removeItem(STORAGE_KEYS.COMPANY_SETTINGS);
+    Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+    Object.values(LEGACY_STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
   },
 
   exportAllData: () => {
     const data = {
+      system: 'Ar Soluções',
+      foundingYear: 2013,
       clients: storage.getClients(),
       equipment: storage.getEquipment(),
       visits: storage.getVisits(),
@@ -257,20 +280,114 @@ export const storage = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `refrigera-certo-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `ar-solucoes-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   },
 
-  importData: (jsonData: string): boolean => {
+  validateBackup: (content: string): {
+    isValid: boolean;
+    errorMessage?: string;
+    stats?: {
+      clientsCount: number;
+      equipmentCount: number;
+      visitsCount: number;
+      quotesCount: number;
+      maintenanceLogsCount: number;
+      companyName?: string;
+      foundingYear?: number;
+      hasLogo?: boolean;
+      exportedAt?: string;
+    };
+    parsedData?: any;
+  } => {
     try {
-      const parsed = JSON.parse(jsonData);
-      if (parsed.clients) storage.saveClients(parsed.clients);
-      if (parsed.equipment) storage.saveEquipment(parsed.equipment);
-      if (parsed.visits) storage.saveVisits(parsed.visits);
-      if (parsed.quotes) storage.saveQuotes(parsed.quotes);
-      if (parsed.maintenanceLogs) storage.saveMaintenanceLogs(parsed.maintenanceLogs);
-      if (parsed.companySettings) storage.saveCompanySettings(parsed.companySettings);
+      if (!content || typeof content !== 'string') {
+        return { isValid: false, errorMessage: 'Arquivo vazio ou formato inválido.' };
+      }
+      const raw = JSON.parse(content);
+      const parsed = raw.data && typeof raw.data === 'object' ? raw.data : raw;
+
+      const hasClients = Array.isArray(parsed.clients);
+      const hasEquipment = Array.isArray(parsed.equipment);
+      const hasVisits = Array.isArray(parsed.visits);
+      const hasQuotes = Array.isArray(parsed.quotes);
+      const hasLogs = Array.isArray(parsed.maintenanceLogs);
+      const hasCompany = Boolean(parsed.companySettings && typeof parsed.companySettings === 'object');
+
+      if (!hasClients && !hasEquipment && !hasVisits && !hasQuotes && !hasLogs && !hasCompany) {
+        return {
+          isValid: false,
+          errorMessage: 'O arquivo JSON selecionado não contém dados de backup válidos do Ar Soluções.'
+        };
+      }
+
+      return {
+        isValid: true,
+        stats: {
+          clientsCount: hasClients ? parsed.clients.length : 0,
+          equipmentCount: hasEquipment ? parsed.equipment.length : 0,
+          visitsCount: hasVisits ? parsed.visits.length : 0,
+          quotesCount: hasQuotes ? parsed.quotes.length : 0,
+          maintenanceLogsCount: hasLogs ? parsed.maintenanceLogs.length : 0,
+          companyName: parsed.companySettings?.tradeName || parsed.companySettings?.companyName || 'Ar Soluções Climatização',
+          foundingYear: parsed.companySettings?.foundingYear || 2013,
+          hasLogo: Boolean(parsed.companySettings?.logoUrl),
+          exportedAt: parsed.exportedAt || undefined
+        },
+        parsedData: parsed
+      };
+    } catch {
+      return {
+        isValid: false,
+        errorMessage: 'Não foi possível interpretar o arquivo. Certifique-se de que é um arquivo .json íntegro.'
+      };
+    }
+  },
+
+  importData: (jsonData: string | any): boolean => {
+    try {
+      let parsed: any;
+      if (typeof jsonData === 'string') {
+        const raw = JSON.parse(jsonData);
+        parsed = raw.data && typeof raw.data === 'object' ? raw.data : raw;
+      } else {
+        parsed = jsonData.data && typeof jsonData.data === 'object' ? jsonData.data : jsonData;
+      }
+
+      if (!parsed || typeof parsed !== 'object') {
+        return false;
+      }
+
+      if (Array.isArray(parsed.clients)) {
+        storage.saveClients(parsed.clients);
+      }
+      if (Array.isArray(parsed.equipment)) {
+        storage.saveEquipment(parsed.equipment);
+      }
+      if (Array.isArray(parsed.visits)) {
+        storage.saveVisits(parsed.visits);
+      }
+      if (Array.isArray(parsed.quotes)) {
+        storage.saveQuotes(parsed.quotes);
+      }
+      if (Array.isArray(parsed.maintenanceLogs)) {
+        storage.saveMaintenanceLogs(parsed.maintenanceLogs);
+      }
+      if (parsed.companySettings && typeof parsed.companySettings === 'object') {
+        const settings = { ...parsed.companySettings };
+        if (settings.companyName && (settings.companyName.includes('Refrigera Certo') || settings.companyName.includes('Refrigeração'))) {
+          settings.companyName = 'Ar Soluções - Climatização Especializada';
+          settings.tradeName = 'Ar Soluções Climatização';
+        }
+        if (!settings.foundingYear || settings.foundingYear !== 2013) {
+          settings.foundingYear = 2013;
+        }
+        if (!settings.email || settings.email.includes('refrigeracerto')) {
+          settings.email = 'arsolucoesdf@gmail.com';
+        }
+        storage.saveCompanySettings(settings);
+      }
       return true;
     } catch (e) {
       console.error('Erro ao importar backup:', e);

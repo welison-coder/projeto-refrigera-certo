@@ -60,7 +60,7 @@ function toCalendarDateTimeString(date: Date): string {
  * Generates direct Google Calendar URL with reminder parameters.
  * When clicked on an Android phone or browser, it opens the calendar with event & alarm ready.
  */
-export function generateGoogleCalendarUrl(visit: TechnicalVisit, companyName: string = 'Refrigera Certo'): string {
+export function generateGoogleCalendarUrl(visit: TechnicalVisit, companyName: string = 'Ar Soluções'): string {
   const { startDate, endDate } = parseVisitDates(visit.date, visit.timeWindow);
   const startStr = toCalendarDateTimeString(startDate);
   const endStr = toCalendarDateTimeString(endDate);
@@ -97,7 +97,7 @@ export function generateGoogleCalendarUrl(visit: TechnicalVisit, companyName: st
  */
 export function generateICSContent(
   visit: TechnicalVisit,
-  companyName: string = 'Refrigera Certo',
+  companyName: string = 'Ar Soluções',
   reminderMinutes: number = 60
 ): string {
   const { startDate, endDate } = parseVisitDates(visit.date, visit.timeWindow);
@@ -117,11 +117,11 @@ export function generateICSContent(
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Refrigera Certo//Gestao Climatizacao//PT-BR',
+    'PRODID:-//Ar Solucoes//Gestao Climatizacao//PT-BR',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:vis-${visit.id}-${Date.now()}@refrigeracerto.com.br`,
+    `UID:vis-${visit.id}-${Date.now()}@arsolucoesdf.com.br`,
     `DTSTAMP:${nowStr}`,
     `DTSTART:${startStr}`,
     `DTEND:${endStr}`,
@@ -146,7 +146,7 @@ export function generateICSContent(
  */
 export function downloadICSFile(
   visit: TechnicalVisit,
-  companyName: string = 'Refrigera Certo',
+  companyName: string = 'Ar Soluções',
   reminderMinutes: number = 60
 ): void {
   const icsContent = generateICSContent(visit, companyName, reminderMinutes);
@@ -167,7 +167,7 @@ export function downloadICSFile(
 /**
  * Opens Google Calendar directly in a new tab or native mobile app.
  */
-export function openGoogleCalendarReminder(visit: TechnicalVisit, companyName: string = 'Refrigera Certo'): void {
+export function openGoogleCalendarReminder(visit: TechnicalVisit, companyName: string = 'Ar Soluções'): void {
   const url = generateGoogleCalendarUrl(visit, companyName);
   window.open(url, '_blank', 'noopener,noreferrer');
 }

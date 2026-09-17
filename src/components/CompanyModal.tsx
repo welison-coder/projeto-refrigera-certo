@@ -12,6 +12,7 @@ interface CompanyModalProps {
   companySettings: CompanySettings;
   onSaveCompanySettings: (settings: CompanySettings) => void;
   onReloadAllData: () => void;
+  onOpenImportBackup?: () => void;
 }
 
 export const CompanyModal: React.FC<CompanyModalProps> = ({
@@ -19,7 +20,8 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
   onClose,
   companySettings,
   onSaveCompanySettings,
-  onReloadAllData
+  onReloadAllData,
+  onOpenImportBackup
 }) => {
   const [formData, setFormData] = useState<CompanySettings>({ ...companySettings });
   const [importStatus, setImportStatus] = useState<string>('');
@@ -208,7 +210,7 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
   };
 
   const handleReset = () => {
-    if (confirm('Deseja restaurar os dados de demonstração padrão da Refrigera Certo?')) {
+    if (confirm('Deseja restaurar os dados de demonstração padrão da Ar Soluções?')) {
       storage.resetToDefault();
       onReloadAllData();
       onClose();
@@ -472,15 +474,27 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block font-semibold text-slate-700 mb-1">Responsável Técnico</label>
-            <input
-              type="text"
-              value={formData.technicianResponsible}
-              onChange={(e) => handleChange('technicianResponsible', e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-              placeholder="Nome do técnico responsável"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Responsável Técnico</label>
+              <input
+                type="text"
+                value={formData.technicianResponsible}
+                onChange={(e) => handleChange('technicianResponsible', e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                placeholder="Nome do técnico responsável"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Ano de Criação / Fundação do Sistema</label>
+              <input
+                type="number"
+                value={formData.foundingYear || 2013}
+                onChange={(e) => setFormData(prev => ({ ...prev, foundingYear: parseInt(e.target.value, 10) || 2013 }))}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono"
+                placeholder="2013"
+              />
+            </div>
           </div>
 
           <div>
@@ -512,16 +526,30 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
                 <span>Exportar Backup (JSON)</span>
               </button>
 
-              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs cursor-pointer">
-                <Upload className="w-3.5 h-3.5 text-sky-600" />
-                <span>Restaurar Backup</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </label>
+              {onOpenImportBackup ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenImportBackup();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs"
+                >
+                  <Upload className="w-3.5 h-3.5 text-sky-600" />
+                  <span>Importar Backup (JSON)</span>
+                </button>
+              ) : (
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs cursor-pointer">
+                  <Upload className="w-3.5 h-3.5 text-sky-600" />
+                  <span>Importar Backup (JSON)</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
 
               <button
                 type="button"

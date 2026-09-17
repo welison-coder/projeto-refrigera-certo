@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Building2,
   Download,
+  Upload,
   PlusCircle,
   ShieldCheck,
   Mic,
@@ -34,6 +35,7 @@ interface NavbarProps {
   onNewVisit: () => void;
   onNewQuote: () => void;
   onExportBackup: () => void;
+  onImportBackup: () => void;
   onOpenVoiceAssistant?: () => void;
   onNavigateToEquipment?: () => void;
   onNavigateToClients?: () => void;
@@ -47,6 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewVisit,
   onNewQuote,
   onExportBackup,
+  onImportBackup,
   onOpenVoiceAssistant,
   onNavigateToEquipment,
   onNavigateToClients
@@ -359,6 +362,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <div className="text-[11px] text-slate-400 leading-tight">Cópia de segurança em arquivo JSON</div>
                     </div>
                   </button>
+
+                  <button
+                    id="submenu-import-backup"
+                    onClick={() => {
+                      onImportBackup();
+                      closeMenu();
+                    }}
+                    className="w-full flex items-start gap-3 p-2.5 rounded-lg text-left hover:bg-slate-800 text-slate-200 transition-colors"
+                  >
+                    <div className="p-1.5 rounded-md bg-sky-500/20 text-sky-400 mt-0.5">
+                      <Upload className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-xs">Importar Backup</div>
+                      <div className="text-[11px] text-slate-400 leading-tight">Restaurar dados de arquivo JSON</div>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -502,6 +522,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <Download className="w-4 h-4 text-slate-400" />
                       <span>Fazer Backup dos Dados</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        onImportBackup();
+                        closeMenu();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                    >
+                      <Upload className="w-4 h-4 text-slate-400" />
+                      <span>Importar Backup dos Dados</span>
                     </button>
                   </div>
 

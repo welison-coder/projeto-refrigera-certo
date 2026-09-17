@@ -135,6 +135,9 @@ export const LoginScreen: React.FC = () => {
         <p className="text-sm font-medium text-slate-300">
           Sistema Profissional de Gestão Técnica & PMOC
         </p>
+        <p className="text-xs font-semibold text-sky-400 mt-1">
+          Ar Soluções • Desde 2013
+        </p>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">

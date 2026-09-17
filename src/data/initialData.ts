@@ -10,7 +10,8 @@ export const initialCompanySettings: CompanySettings = {
   address: '710 Asa Norte, Brasília - DF',
   technicianResponsible: 'Wellisson Medeiros',
   pixKey: '60.768.974/0001-41',
-  defaultWarranty: 'Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.'
+  defaultWarranty: 'Garantia legal de 90 dias para mão de obra e peças substituídas conforme termo técnico.',
+  foundingYear: 2013
 };
 
 export const initialClients: Client[] = [

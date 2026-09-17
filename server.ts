@@ -123,7 +123,7 @@ async function startServer() {
       const quotesList = (context?.quotes || []).slice(0, 20);
       const workOrdersList = (context?.recentWorkOrders || []).slice(0, 20);
 
-      const systemPrompt = `Você é o Assistente Inteligente por Voz do sistema "Refrigera Certo" (Ar Soluções Climatização).
+      const systemPrompt = `Você é o Assistente Inteligente por Voz do sistema "Ar Soluções" (Ar Soluções Climatização, fundada em 2013).
 Sua missão é interpretar comandos naturais de voz do técnico/gestor de climatização e mapear para ações estruturadas seguras no sistema.
 
 DIRETRIZES FUNDAMENTAIS:

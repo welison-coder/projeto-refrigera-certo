@@ -1,4 +1,4 @@
-// Voice Assistant Service for Ar Soluções / Refrigera Certo
+// Voice Assistant Service for Ar Soluções Climatização
 import { Client, Equipment, TechnicalVisit, Quote, MaintenanceLog } from '../types';
 
 export interface VoiceAssistantContext {
@@ -82,8 +82,8 @@ export interface VoiceChatMessage {
   reminderVisit?: TechnicalVisit;
 }
 
-const STORAGE_KEY_HISTORY = 'refrigera_voice_assistant_history_v1';
-const STORAGE_KEY_VOICE_MUTED = 'refrigera_voice_assistant_muted';
+const STORAGE_KEY_HISTORY = 'ar_solucoes_voice_assistant_history_v1';
+const STORAGE_KEY_VOICE_MUTED = 'ar_solucoes_voice_assistant_muted';
 
 // ==========================================
 // 1. Web Speech Recognition Helper

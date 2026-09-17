@@ -81,6 +81,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Operação em Tempo Real
             </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 text-sky-200 text-xs font-semibold border border-slate-700/80">
+              Ar Soluções • Desde 2013
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
             Gestão Integrada de Climatização

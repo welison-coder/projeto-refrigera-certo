@@ -33,21 +33,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const DEFAULT_ADMIN_PROFILE: UserProfile = {
   id: 'admin-master',
   name: 'Administrador (Admin)',
-  email: 'admin@refrigeracerto.com.br',
+  email: 'admin@arsolucoes.com.br',
   role: 'admin',
-  phone: '(11) 98888-7777',
+  phone: '(61) 99284-8993',
   createdAt: new Date().toISOString()
 };
 
-const LOCAL_DEMO_USER_KEY = 'refrigera_certo_admin_user';
+const LOCAL_DEMO_USER_KEY = 'ar_solucoes_admin_user';
+const LEGACY_LOCAL_DEMO_USER_KEY = 'refrigera_certo_admin_user';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_DEMO_USER_KEY);
+      const saved = localStorage.getItem(LOCAL_DEMO_USER_KEY) || localStorage.getItem(LEGACY_LOCAL_DEMO_USER_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.email && parsed.email.includes('refrigera')) {
+          parsed.email = 'admin@arsolucoes.com.br';
+        }
         return { ...parsed, role: 'admin' };
       }
       return DEFAULT_ADMIN_PROFILE;
@@ -70,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newProfile: UserProfile = {
           id: firebaseUser.uid,
           name: overrideName || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Administrador',
-          email: firebaseUser.email || 'admin@refrigeracerto.com.br',
+          email: firebaseUser.email || 'admin@arsolucoes.com.br',
           role: 'admin',
           createdAt: new Date().toISOString()
         };
@@ -219,9 +223,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const demoProfile: UserProfile = {
       id: 'demo-user-123',
       name: role === 'admin' ? 'Carlos Silva (Administrador)' : 'Roberto Mendes (Técnico HVAC)',
-      email: role === 'admin' ? 'admin@refrigeracerto.com.br' : 'tecnico@refrigeracerto.com.br',
+      email: role === 'admin' ? 'admin@arsolucoes.com.br' : 'tecnico@arsolucoes.com.br',
       role,
-      phone: '(11) 98888-7777',
+      phone: '(61) 99284-8993',
       createdAt: new Date().toISOString()
     };
     setUserProfile(demoProfile);
@@ -239,6 +243,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentUser(null);
       setUserProfile(DEFAULT_ADMIN_PROFILE);
       localStorage.removeItem(LOCAL_DEMO_USER_KEY);
+      localStorage.removeItem(LEGACY_LOCAL_DEMO_USER_KEY);
     }
   };
 

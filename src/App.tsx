@@ -16,6 +16,7 @@ import { QuotesView } from './components/QuotesView';
 import { MaintenanceHistoryView } from './components/MaintenanceHistoryView';
 import { ClientsEquipmentView } from './components/ClientsEquipmentView';
 import { CompanyModal } from './components/CompanyModal';
+import { ImportBackupModal } from './components/ImportBackupModal';
 import { ReminderModal } from './components/ReminderModal';
 import { VoiceAssistantModal } from './components/VoiceAssistantModal';
 import { VoiceAssistantButton } from './components/VoiceAssistantButton';
@@ -50,8 +51,9 @@ function MainApp() {
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>(() => storage.getMaintenanceLogs());
   const [companySettings, setCompanySettings] = useState<CompanySettings>(() => storage.getCompanySettings());
 
-  // Company settings modal
+  // Company settings & Backup modals
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState<boolean>(false);
+  const [isImportBackupModalOpen, setIsImportBackupModalOpen] = useState<boolean>(false);
 
   // Reminder modal state
   const [reminderModalData, setReminderModalData] = useState<{ visit: TechnicalVisit; autoTriggered?: boolean } | null>(null);
@@ -157,12 +159,30 @@ function MainApp() {
 
   // Reload all data
   const handleReloadAllData = () => {
-    setClients(storage.getClients());
-    setEquipment(storage.getEquipment());
-    setVisits(storage.getVisits());
-    setQuotes(storage.getQuotes());
-    setMaintenanceLogs(storage.getMaintenanceLogs());
-    setCompanySettings(storage.getCompanySettings());
+    const loadedClients = storage.getClients();
+    const loadedEquipment = storage.getEquipment();
+    const loadedVisits = storage.getVisits();
+    const loadedQuotes = storage.getQuotes();
+    const loadedLogs = storage.getMaintenanceLogs();
+    const loadedSettings = storage.getCompanySettings();
+
+    setClients(loadedClients);
+    setEquipment(loadedEquipment);
+    setVisits(loadedVisits);
+    setQuotes(loadedQuotes);
+    setMaintenanceLogs(loadedLogs);
+    setCompanySettings(loadedSettings);
+    notifyLogoUpdated(loadedSettings.logoUrl || null);
+
+    // Enviar dados restaurados para sincronização na nuvem imediatamente
+    syncService.queuePush({
+      clients: loadedClients,
+      equipment: loadedEquipment,
+      visits: loadedVisits,
+      quotes: loadedQuotes,
+      maintenanceLogs: loadedLogs,
+      companySettings: loadedSettings,
+    });
   };
 
   // Visit handlers
@@ -345,6 +365,7 @@ function MainApp() {
         onNewVisit={() => setActiveTab('visits')}
         onNewQuote={() => setActiveTab('quotes')}
         onExportBackup={() => storage.exportAllData()}
+        onImportBackup={() => setIsImportBackupModalOpen(true)}
         onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
         onNavigateToEquipment={handleNavigateToEquipment}
         onNavigateToClients={handleNavigateToClients}
@@ -430,7 +451,7 @@ function MainApp() {
             <BrandLogo size="xs" theme="light" />
             <span className="text-slate-300 hidden sm:inline">•</span>
             <p>
-              © {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Ar Soluções Climatização'}</strong> — Climatização Especializada
+              © {companySettings.foundingYear || 2013} - {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Ar Soluções Climatização'}</strong> — Climatização Especializada • Desde {companySettings.foundingYear || 2013}
             </p>
           </div>
           <p className="text-[11px] text-slate-400">
@@ -446,6 +467,14 @@ function MainApp() {
         companySettings={companySettings}
         onSaveCompanySettings={setCompanySettings}
         onReloadAllData={handleReloadAllData}
+        onOpenImportBackup={() => setIsImportBackupModalOpen(true)}
+      />
+
+      {/* Import Backup Modal */}
+      <ImportBackupModal
+        isOpen={isImportBackupModalOpen}
+        onClose={() => setIsImportBackupModalOpen(false)}
+        onSuccess={handleReloadAllData}
       />
 
       {/* Mobile Reminder & Calendar Integration Modal */}

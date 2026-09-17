@@ -4,7 +4,8 @@
  * para serem usados como logotipo em todas as telas, relatórios e menus do sistema.
  */
 
-const STORAGE_KEY = 'refrigera_certo_company';
+const STORAGE_KEY = 'ar_solucoes_company';
+const LEGACY_STORAGE_KEY = 'refrigera_certo_company';
 export const LOGO_UPDATED_EVENT = 'ar-logo-updated';
 
 /**
@@ -12,7 +13,7 @@ export const LOGO_UPDATED_EVENT = 'ar-logo-updated';
  */
 export function getStoredCustomLogo(): string | null {
   try {
-    const item = localStorage.getItem(STORAGE_KEY);
+    const item = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!item) return null;
     const parsed = JSON.parse(item);
     return parsed.logoUrl && typeof parsed.logoUrl === 'string' ? parsed.logoUrl : null;
