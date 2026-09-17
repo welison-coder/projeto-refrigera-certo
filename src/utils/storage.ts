@@ -66,11 +66,14 @@ export const storage = {
     const equipment = getStoredItem(STORAGE_KEYS.EQUIPMENT, initialEquipment);
     let modified = false;
     const updated = equipment.map(eq => {
+      let itemModified = false;
+      let newEq = { ...eq };
+
       if (eq.type.includes('Câmara Fria') || eq.type.includes('Balcão Frigorífico')) {
-        modified = true;
+        itemModified = true;
         const isFreezer = eq.type.includes('Congelados');
-        return {
-          ...eq,
+        newEq = {
+          ...newEq,
           type: isFreezer ? 'Split Cassete Inverter' : 'Split Piso Teto Inverter',
           brand: isFreezer ? 'Daikin' : 'Carrier',
           model: isFreezer ? 'FCNQ48MV2L' : '42XQL060515LC',
@@ -79,7 +82,24 @@ export const storage = {
           locationDescription: isFreezer ? 'Setor de caixas e atendimento principal' : 'Salão de vendas e buffet de pães'
         };
       }
-      return eq;
+
+      // Populate sample photos from initial data if not yet present
+      const initialMatch = initialEquipment.find(ie => ie.id === eq.id);
+      if (initialMatch && (!newEq.labelPhotoUrl || !newEq.installationPhotoUrl)) {
+        itemModified = true;
+        newEq = {
+          ...newEq,
+          labelPhotoUrl: newEq.labelPhotoUrl || initialMatch.labelPhotoUrl,
+          labelPhotoDate: newEq.labelPhotoDate || initialMatch.labelPhotoDate,
+          installationPhotoUrl: newEq.installationPhotoUrl || initialMatch.installationPhotoUrl,
+          installationPhotoDate: newEq.installationPhotoDate || initialMatch.installationPhotoDate,
+          nominalCurrent: newEq.nominalCurrent || initialMatch.nominalCurrent,
+          voltage: newEq.voltage || initialMatch.voltage
+        };
+      }
+
+      if (itemModified) modified = true;
+      return newEq;
     });
     if (modified) setStoredItem(STORAGE_KEYS.EQUIPMENT, updated);
     return updated;

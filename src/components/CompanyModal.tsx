@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Building2, Save, Download, Upload, RotateCcw, ShieldCheck, Search, Loader2, CheckCircle2, AlertCircle, MapPin } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Building2, Save, Download, Upload, RotateCcw, ShieldCheck, Search, Loader2, CheckCircle2, AlertCircle, MapPin, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { CompanySettings } from '../types';
 import { storage } from '../utils/storage';
 import { BrandLogo } from './BrandLogo';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
+import { processLogoUpload, notifyLogoUpdated } from '../utils/logoManager';
 
 interface CompanyModalProps {
   isOpen: boolean;
@@ -28,10 +29,93 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
     message?: string;
   }>({ type: 'idle' });
 
+  // Estados de gestão da Logomarca
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessingLogo, setIsProcessingLogo] = useState<boolean>(false);
+  const [isDraggingLogo, setIsDraggingLogo] = useState<boolean>(false);
+  const [logoFeedback, setLogoFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  // Sincronizar formData sempre que as props mudarem ao abrir o modal
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ ...companySettings });
+      setLogoFeedback(null);
+    }
+  }, [isOpen, companySettings]);
+
   if (!isOpen) return null;
 
   const handleChange = (field: keyof CompanySettings, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  // Processamento do arquivo de imagem da logo carregado
+  const handleProcessLogoFile = async (file: File) => {
+    setIsProcessingLogo(true);
+    setLogoFeedback(null);
+    try {
+      const dataUrl = await processLogoUpload(file);
+      setFormData((prev) => ({ ...prev, logoUrl: dataUrl }));
+      setLogoFeedback({
+        type: 'success',
+        message: 'Logomarca carregada com sucesso! Clique em "Salvar Dados da Empresa" para aplicar em todo o sistema.'
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao processar arquivo de imagem.';
+      setLogoFeedback({
+        type: 'error',
+        message: errorMsg
+      });
+    } finally {
+      setIsProcessingLogo(false);
+      if (logoInputRef.current) {
+        logoInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleProcessLogoFile(file);
+    }
+  };
+
+  const handleLogoDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingLogo(true);
+  };
+
+  const handleLogoDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingLogo(false);
+  };
+
+  const handleLogoDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingLogo(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleProcessLogoFile(file);
+    }
+  };
+
+  const handleResetToDefaultLogo = () => {
+    setFormData((prev) => {
+      const updated = { ...prev };
+      delete updated.logoUrl;
+      return updated;
+    });
+    setLogoFeedback({
+      type: 'success',
+      message: 'Logomarca restaurada para o padrão oficial da empresa. Clique em Salvar para confirmar.'
+    });
   };
 
   const performCompanyCepLookup = async (digitsToSearch?: string) => {
@@ -94,6 +178,7 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveCompanySettings(formData);
+    notifyLogoUpdated(formData.logoUrl || null);
     onClose();
   };
 
@@ -147,17 +232,103 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
           </button>
         </div>
 
-        {/* Official Brand Logo Badge */}
-        <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-              Logomarca Oficial Cadastrada
-            </span>
-            <BrandLogo size="md" theme="light" showSubtitle={true} />
+        {/* Gestão Dinâmica da Logomarca */}
+        <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200/90 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="text-[11px] uppercase font-bold tracking-wide text-slate-700 block">
+                Logotipo da Empresa no Sistema
+              </span>
+              <p className="text-[11px] text-slate-500">
+                Usado automaticamente no cabeçalho do menu, orçamentos, laudos de PMOC e PDFs.
+              </p>
+            </div>
+            {formData.logoUrl ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+                <CheckCircle2 className="w-3 h-3" />
+                Logo Personalizada Ativa
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200 self-start sm:self-auto">
+                <ShieldCheck className="w-3 h-3" />
+                Logo Padrão Ativa
+              </span>
+            )}
           </div>
-          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-            Ativa no Sistema & PDF
-          </span>
+
+          {/* Área de Visualização e Carregamento */}
+          <div 
+            onDragOver={handleLogoDragOver}
+            onDragLeave={handleLogoDragLeave}
+            onDrop={handleLogoDrop}
+            className={`p-4 bg-white rounded-xl border-2 border-dashed transition-all flex flex-col sm:flex-row items-center justify-between gap-4 ${
+              isDraggingLogo ? 'border-sky-500 bg-sky-50/50 scale-[0.99]' : 'border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {/* Visualização da Logo atual */}
+            <div className="flex items-center justify-center p-3 bg-slate-50/70 rounded-lg border border-slate-100 min-w-[160px] max-w-[240px] min-h-[56px]">
+              <BrandLogo size="md" theme="light" customLogoUrl={formData.logoUrl} />
+            </div>
+
+            {/* Ações de Upload */}
+            <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="file"
+                  ref={logoInputRef}
+                  onChange={handleLogoFileChange}
+                  accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                  className="hidden"
+                />
+                
+                <button
+                  type="button"
+                  id="btn-upload-logo-file"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={isProcessingLogo}
+                  className="px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {isProcessingLogo ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Processando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Carregar dos Arquivos</span>
+                    </>
+                  )}
+                </button>
+
+                {formData.logoUrl && (
+                  <button
+                    type="button"
+                    id="btn-restore-default-logo"
+                    onClick={handleResetToDefaultLogo}
+                    className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 font-semibold text-xs border border-slate-200 hover:border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Restaurar a logomarca padrão"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Restaurar Padrão</span>
+                  </button>
+                )}
+              </div>
+
+              <span className="text-[10px] text-slate-400 text-center sm:text-right">
+                Arraste um arquivo ou clique para selecionar (PNG transparente, SVG, JPG, WebP)
+              </span>
+            </div>
+          </div>
+
+          {logoFeedback && (
+            <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+              logoFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+            }`}>
+              {logoFeedback.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+              <span>{logoFeedback.message}</span>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">

@@ -36,11 +36,17 @@ export interface Equipment {
   capacity: string; // '9.000 BTU', '12.000 BTU', '18.000 BTU', '36.000 BTU', '60.000 BTU', etc.
   gasType: string; // 'R-410A', 'R-32', 'R-22', 'R-134a'
   serialNumber?: string;
+  nominalCurrent?: string; // Corrente operacional nominal (A) presente na etiqueta técnica
+  voltage?: string; // Ex: 220V 1F 60Hz, 380V 3F
   locationDescription: string; // 'Sala Reunião Diretoria', 'Auditório Principal', 'Recepção'
   installationDate?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
   status: EquipmentStatus;
+  labelPhotoUrl?: string; // Foto da Etiqueta Técnica (modelo, nº série, BTU, corrente e gás refrigerante)
+  labelPhotoDate?: string; // Data/hora do registro fotográfico da etiqueta
+  installationPhotoUrl?: string; // Foto da Instalação no Local (inspeção de evaporadora ou condensadora instalada)
+  installationPhotoDate?: string; // Data/hora do registro fotográfico da instalação
 }
 
 export interface TechnicalVisit {
@@ -152,6 +158,7 @@ export interface CompanySettings {
   technicalRegistration?: string;
   pixKey?: string;
   defaultWarranty: string;
+  logoUrl?: string;
 }
 
 export interface UserProfile {

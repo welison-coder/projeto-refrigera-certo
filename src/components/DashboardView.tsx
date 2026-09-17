@@ -19,7 +19,6 @@ import { formatCurrency, formatDateBR, createWhatsAppLink, generateVisitConfirma
 import { generateGoogleCalendarUrl } from '../utils/calendarReminder';
 import { RouteButton } from './RouteButton';
 import { getGoogleMapsRouteUrl } from '../utils/navigation';
-import { BrandLogo } from './BrandLogo';
 
 interface DashboardViewProps {
   visits: TechnicalVisit[];
@@ -78,9 +77,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className="relative z-10 max-w-3xl">
           <div className="flex flex-wrap items-center gap-3 mb-3">
-            <div className="bg-white/95 px-3.5 py-1.5 rounded-xl inline-flex items-center shadow-sm">
-              <BrandLogo size="sm" theme="light" />
-            </div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-semibold border border-sky-400/30">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Operação em Tempo Real

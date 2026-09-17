@@ -1,4 +1,5 @@
 import { Client, Equipment, TechnicalVisit, Quote, MaintenanceLog, CompanySettings } from '../types';
+import { generateSampleLabelPhoto, generateSampleInstallationPhoto } from '../utils/sampleEquipmentPhotos';
 
 export const initialCompanySettings: CompanySettings = {
   companyName: 'Ar Soluções - Climatização Especializada',
@@ -95,11 +96,31 @@ export const initialEquipment: Equipment[] = [
     capacity: '60.000 BTU',
     gasType: 'R-410A',
     serialNumber: 'CAR-2023-8812',
+    nominalCurrent: '12.8 A',
+    voltage: '220V 1F 60Hz',
     locationDescription: 'Salão de vendas e buffet de pães',
     installationDate: '2023-05-12',
     lastMaintenanceDate: '2026-08-10',
     nextMaintenanceDate: '2026-11-10',
-    status: 'Operando Normal'
+    status: 'Operando Normal',
+    labelPhotoUrl: generateSampleLabelPhoto({
+      brand: 'Carrier',
+      model: '42XQL060515LC',
+      capacity: '60.000 BTU (17.58 kW)',
+      gasType: 'R-410A',
+      serialNumber: 'CAR-2023-8812',
+      currentAmp: '12.8 A (FLA)',
+      voltage: '220V 1F'
+    }),
+    labelPhotoDate: '2026-08-10T10:15:00Z',
+    installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Evaporadora Piso Teto Salão Principal',
+      unitType: 'evaporadora',
+      location: 'Salão de vendas e buffet de pães',
+      brand: 'Carrier',
+      capacity: '60.000 BTU'
+    }),
+    installationPhotoDate: '2026-08-10T10:20:00Z'
   },
   {
     id: 'eq-2',
@@ -111,11 +132,31 @@ export const initialEquipment: Equipment[] = [
     capacity: '36.000 BTU',
     gasType: 'R-410A',
     serialNumber: 'CAR-36K-901',
+    nominalCurrent: '8.4 A',
+    voltage: '220V 1F 60Hz',
     locationDescription: 'Salão principal de atendimento ao cliente',
     installationDate: '2024-01-20',
     lastMaintenanceDate: '2026-06-15',
     nextMaintenanceDate: '2026-09-15',
-    status: 'Atenção / Manutenção Pendente'
+    status: 'Atenção / Manutenção Pendente',
+    labelPhotoUrl: generateSampleLabelPhoto({
+      brand: 'Carrier',
+      model: '40KWQA36C5',
+      capacity: '36.000 BTU (10.55 kW)',
+      gasType: 'R-410A',
+      serialNumber: 'CAR-36K-901',
+      currentAmp: '8.4 A (FLA)',
+      voltage: '220V 1F'
+    }),
+    labelPhotoDate: '2026-06-15T14:30:00Z',
+    installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Condensadora Externa Carrier 36K',
+      unitType: 'condensadora',
+      location: 'Telhado técnico fundos',
+      brand: 'Carrier',
+      capacity: '36.000 BTU'
+    }),
+    installationPhotoDate: '2026-06-15T14:40:00Z'
   },
   {
     id: 'eq-3',
@@ -127,11 +168,31 @@ export const initialEquipment: Equipment[] = [
     capacity: '12.000 BTU',
     gasType: 'R-32',
     serialNumber: 'DKN-2024-411',
+    nominalCurrent: '4.8 A',
+    voltage: '220V 1F 60Hz',
     locationDescription: 'Consultório Principal 01',
     installationDate: '2024-04-10',
     lastMaintenanceDate: '2026-07-20',
     nextMaintenanceDate: '2026-10-20',
-    status: 'Operando Normal'
+    status: 'Operando Normal',
+    labelPhotoUrl: generateSampleLabelPhoto({
+      brand: 'Daikin',
+      model: 'FTKC12Q5VL',
+      capacity: '12.000 BTU (3.5 kW)',
+      gasType: 'R-32',
+      serialNumber: 'DKN-2024-411',
+      currentAmp: '4.8 A (FLA)',
+      voltage: '220V 1F'
+    }),
+    labelPhotoDate: '2026-07-20T09:00:00Z',
+    installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Evaporadora Consultório 01',
+      unitType: 'evaporadora',
+      location: 'Consultório Principal 01',
+      brand: 'Daikin',
+      capacity: '12.000 BTU'
+    }),
+    installationPhotoDate: '2026-07-20T09:10:00Z'
   },
   {
     id: 'eq-4',
@@ -143,11 +204,31 @@ export const initialEquipment: Equipment[] = [
     capacity: '48.000 BTU',
     gasType: 'R-410A',
     serialNumber: 'DKN-9921-C',
+    nominalCurrent: '11.2 A',
+    voltage: '220V 3F 60Hz',
     locationDescription: 'Setor de caixas e atendimento principal',
     installationDate: '2022-11-05',
     lastMaintenanceDate: '2026-08-01',
     nextMaintenanceDate: '2026-09-05',
-    status: 'Atenção / Manutenção Pendente'
+    status: 'Atenção / Manutenção Pendente',
+    labelPhotoUrl: generateSampleLabelPhoto({
+      brand: 'Daikin',
+      model: 'FCNQ48MV2L',
+      capacity: '48.000 BTU (14.06 kW)',
+      gasType: 'R-410A',
+      serialNumber: 'DKN-9921-C',
+      currentAmp: '11.2 A (FLA)',
+      voltage: '220V 3F'
+    }),
+    labelPhotoDate: '2026-08-01T16:00:00Z',
+    installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Condensadora Externa Daikin 48K',
+      unitType: 'condensadora',
+      location: 'Cobertura de máquinas supermercado',
+      brand: 'Daikin',
+      capacity: '48.000 BTU'
+    }),
+    installationPhotoDate: '2026-08-01T16:20:00Z'
   },
   {
     id: 'eq-5',
@@ -159,11 +240,31 @@ export const initialEquipment: Equipment[] = [
     capacity: '24.000 BTU (3x9.000)',
     gasType: 'R-410A',
     serialNumber: 'FUJ-7712-A',
+    nominalCurrent: '7.6 A',
+    voltage: '220V 1F 60Hz',
     locationDescription: 'Área técnica varanda / Dormitórios',
     installationDate: '2024-08-12',
     lastMaintenanceDate: '2026-02-15',
     nextMaintenanceDate: '2026-08-15',
-    status: 'Atenção / Manutenção Pendente'
+    status: 'Atenção / Manutenção Pendente',
+    labelPhotoUrl: generateSampleLabelPhoto({
+      brand: 'Fujitsu',
+      model: 'AOBG24LAT3',
+      capacity: '24.000 BTU (3x9.000)',
+      gasType: 'R-410A',
+      serialNumber: 'FUJ-7712-A',
+      currentAmp: '7.6 A (FLA)',
+      voltage: '220V 1F'
+    }),
+    labelPhotoDate: '2026-02-15T11:45:00Z',
+    installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Condensadora Multi-Split na Varanda Técnica',
+      unitType: 'condensadora',
+      location: 'Área técnica varanda',
+      brand: 'Fujitsu',
+      capacity: '24.000 BTU'
+    }),
+    installationPhotoDate: '2026-02-15T11:55:00Z'
   }
 ];
 

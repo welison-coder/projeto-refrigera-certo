@@ -18,13 +18,21 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Camera,
+  Tag,
+  ZoomIn,
+  Download,
+  Image as ImageIcon,
+  Zap
 } from 'lucide-react';
 import { Client, Equipment, EquipmentStatus } from '../types';
 import { formatDateBR } from '../utils/formatters';
 import { RouteButton } from './RouteButton';
 import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
+import { EquipmentPhotoLightbox, PhotoType } from './EquipmentPhotoLightbox';
+import { EquipmentPhotoUploader } from './EquipmentPhotoUploader';
 
 interface ClientsEquipmentViewProps {
   clients: Client[];
@@ -36,6 +44,7 @@ interface ClientsEquipmentViewProps {
   onScheduleVisitForClient: (client: Client, equipmentId?: string) => void;
   onNewQuoteForClient: (client: Client) => void;
   onViewEquipmentHistory: (equipmentId: string) => void;
+  initialTab?: 'clients' | 'equipment';
 }
 
 export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
@@ -47,10 +56,17 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
   onDeleteEquipment,
   onScheduleVisitForClient,
   onNewQuoteForClient,
-  onViewEquipmentHistory
+  onViewEquipmentHistory,
+  initialTab = 'clients'
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'clients' | 'equipment'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'equipment'>(initialTab);
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Client modal
   const [isClientModalOpen, setIsClientModalOpen] = useState<boolean>(false);
@@ -85,9 +101,26 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
   const [equipFormCapacity, setEquipFormCapacity] = useState<string>('12.000 BTU');
   const [equipFormGasType, setEquipFormGasType] = useState<string>('R-410A');
   const [equipFormSerial, setEquipFormSerial] = useState<string>('');
+  const [equipFormNominalCurrent, setEquipFormNominalCurrent] = useState<string>('');
+  const [equipFormVoltage, setEquipFormVoltage] = useState<string>('220V 1F 60Hz');
   const [equipFormLocation, setEquipFormLocation] = useState<string>('');
   const [equipFormStatus, setEquipFormStatus] = useState<EquipmentStatus>('Operando Normal');
   const [equipFormNextDate, setEquipFormNextDate] = useState<string>('');
+  const [equipFormLabelPhotoUrl, setEquipFormLabelPhotoUrl] = useState<string | undefined>(undefined);
+  const [equipFormLabelPhotoDate, setEquipFormLabelPhotoDate] = useState<string | undefined>(undefined);
+  const [equipFormInstallPhotoUrl, setEquipFormInstallPhotoUrl] = useState<string | undefined>(undefined);
+  const [equipFormInstallPhotoDate, setEquipFormInstallPhotoDate] = useState<string | undefined>(undefined);
+
+  // Fullscreen Lightbox viewer state
+  const [lightboxEquipment, setLightboxEquipment] = useState<Equipment | null>(null);
+  const [lightboxPhotoType, setLightboxPhotoType] = useState<PhotoType>('label');
+  const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
+
+  const openLightbox = (eq: Equipment, type: PhotoType = 'label') => {
+    setLightboxEquipment(eq);
+    setLightboxPhotoType(type);
+    setIsLightboxOpen(true);
+  };
 
   const openNewClientModal = () => {
     setEditingClient(null);
@@ -214,8 +247,14 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setEquipFormCapacity('12.000 BTU');
     setEquipFormGasType('R-410A');
     setEquipFormSerial('');
+    setEquipFormNominalCurrent('');
+    setEquipFormVoltage('220V 1F 60Hz');
     setEquipFormLocation('Sala Principal');
     setEquipFormStatus('Operando Normal');
+    setEquipFormLabelPhotoUrl(undefined);
+    setEquipFormLabelPhotoDate(undefined);
+    setEquipFormInstallPhotoUrl(undefined);
+    setEquipFormInstallPhotoDate(undefined);
     
     const d = new Date();
     d.setDate(d.getDate() + 90);
@@ -233,9 +272,15 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setEquipFormCapacity(eq.capacity);
     setEquipFormGasType(eq.gasType);
     setEquipFormSerial(eq.serialNumber || '');
+    setEquipFormNominalCurrent(eq.nominalCurrent || '');
+    setEquipFormVoltage(eq.voltage || '220V 1F 60Hz');
     setEquipFormLocation(eq.locationDescription);
     setEquipFormStatus(eq.status);
     setEquipFormNextDate(eq.nextMaintenanceDate || '');
+    setEquipFormLabelPhotoUrl(eq.labelPhotoUrl);
+    setEquipFormLabelPhotoDate(eq.labelPhotoDate);
+    setEquipFormInstallPhotoUrl(eq.installationPhotoUrl);
+    setEquipFormInstallPhotoDate(eq.installationPhotoDate);
     setIsEquipmentModalOpen(true);
   };
 
@@ -256,11 +301,17 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
       model: equipFormModel,
       capacity: equipFormCapacity,
       gasType: equipFormGasType,
-      serialNumber: equipFormSerial,
+      serialNumber: equipFormSerial.trim() || undefined,
+      nominalCurrent: equipFormNominalCurrent.trim() || undefined,
+      voltage: equipFormVoltage.trim() || undefined,
       locationDescription: equipFormLocation,
       status: equipFormStatus,
-      nextMaintenanceDate: equipFormNextDate,
-      lastMaintenanceDate: editingEquipment?.lastMaintenanceDate
+      nextMaintenanceDate: equipFormNextDate || undefined,
+      lastMaintenanceDate: editingEquipment?.lastMaintenanceDate,
+      labelPhotoUrl: equipFormLabelPhotoUrl,
+      labelPhotoDate: equipFormLabelPhotoDate,
+      installationPhotoUrl: equipFormInstallPhotoUrl,
+      installationPhotoDate: equipFormInstallPhotoDate
     };
 
     onSaveEquipment(equipToSave);
@@ -469,9 +520,22 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     ) : (
                       <div className="space-y-1">
                         {clientEquipments.map(eq => (
-                          <div key={eq.id} className="flex items-center justify-between text-[11px] bg-white p-1.5 rounded border border-slate-200">
-                            <span className="truncate">{eq.brand} {eq.capacity} ({eq.locationDescription})</span>
-                            <span className="text-slate-400 font-mono text-[10px] shrink-0 ml-1">{eq.gasType}</span>
+                          <div key={eq.id} className="flex items-center justify-between text-[11px] bg-white p-1.5 rounded border border-slate-200 gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="truncate">{eq.brand} {eq.capacity} ({eq.locationDescription})</span>
+                              {(eq.labelPhotoUrl || eq.installationPhotoUrl) && (
+                                <button
+                                  type="button"
+                                  onClick={() => openLightbox(eq, eq.labelPhotoUrl ? 'label' : 'installation')}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100 font-semibold text-[9px] shrink-0 border border-sky-200 transition-colors"
+                                  title="Ver fotos deste equipamento no Lightbox"
+                                >
+                                  <Camera className="w-2.5 h-2.5 text-sky-600" />
+                                  <span>Fotos</span>
+                                </button>
+                              )}
+                            </div>
+                            <span className="text-slate-400 font-mono text-[10px] shrink-0">{eq.gasType}</span>
                           </div>
                         ))}
                       </div>
@@ -565,10 +629,28 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     <span className="text-slate-400">Localização:</span>
                     <span className="font-semibold text-slate-800">{eq.locationDescription}</span>
                   </div>
+                  {eq.model && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Modelo:</span>
+                      <span className="font-mono text-slate-700">{eq.model}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-400">Gás Refrigerante:</span>
                     <span className="font-mono font-bold text-sky-700">{eq.gasType}</span>
                   </div>
+                  {eq.nominalCurrent && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Corrente (A):</span>
+                      <span className="font-mono font-bold text-amber-700">{eq.nominalCurrent}</span>
+                    </div>
+                  )}
+                  {eq.voltage && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Tensão / Fase:</span>
+                      <span className="font-mono text-slate-700">{eq.voltage}</span>
+                    </div>
+                  )}
                   {eq.serialNumber && (
                     <div className="flex justify-between">
                       <span className="text-slate-400">Nº de Série:</span>
@@ -581,6 +663,113 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                       <span className="font-bold">{formatDateBR(eq.nextMaintenanceDate)}</span>
                     </div>
                   )}
+                </div>
+
+                {/* ========================================================= */}
+                {/* Miniaturas Diretas nos Cartões (Etiqueta & Instalação)     */}
+                {/* ========================================================= */}
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                      <Camera className="w-3.5 h-3.5 text-sky-600" />
+                      Registro Fotográfico
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {(eq.labelPhotoUrl && eq.installationPhotoUrl)
+                        ? '2 fotos (completas)'
+                        : (eq.labelPhotoUrl || eq.installationPhotoUrl)
+                        ? '1 foto registrada'
+                        : 'Nenhuma foto'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* 1. Miniatura Etiqueta Técnica */}
+                    {eq.labelPhotoUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => openLightbox(eq, 'label')}
+                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        title="Inspecionar foto da Etiqueta Técnica em Tela Cheia (Lightbox)"
+                      >
+                        <div className="h-20 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
+                          <img
+                            src={eq.labelPhotoUrl}
+                            alt="Etiqueta Técnica"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                          <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ZoomIn className="w-3 h-3 text-sky-300" />
+                          </div>
+                          <span className="absolute bottom-1 left-1 text-[9px] font-bold text-white bg-sky-600/90 px-1 py-0.2 rounded shadow-xs">
+                            Etiqueta
+                          </span>
+                        </div>
+                        <div className="px-1.5 py-1 bg-white border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[10px] font-semibold text-slate-700 truncate">Placa Técnica</span>
+                          <span className="text-[9px] text-sky-600 font-bold group-hover:underline flex items-center gap-0.5">
+                            <ZoomIn className="w-2.5 h-2.5" />
+                            Ver
+                          </span>
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openEditEquipmentModal(eq)}
+                        className="flex flex-col items-center justify-center h-[106px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-2 text-center group"
+                        title="Adicionar foto da etiqueta técnica"
+                      >
+                        <Tag className="w-4 h-4 mb-1 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                        <span className="text-[10px] font-semibold leading-tight">+ Etiqueta</span>
+                        <span className="text-[9px] text-slate-400 mt-0.5">Série & BTU</span>
+                      </button>
+                    )}
+
+                    {/* 2. Miniatura Instalação no Local */}
+                    {eq.installationPhotoUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => openLightbox(eq, 'installation')}
+                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        title="Inspecionar foto da Instalação no Local em Tela Cheia (Lightbox)"
+                      >
+                        <div className="h-20 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
+                          <img
+                            src={eq.installationPhotoUrl}
+                            alt="Instalação no Local"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                          <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ZoomIn className="w-3 h-3 text-sky-300" />
+                          </div>
+                          <span className="absolute bottom-1 left-1 text-[9px] font-bold text-white bg-emerald-600/90 px-1 py-0.2 rounded shadow-xs">
+                            Instalação
+                          </span>
+                        </div>
+                        <div className="px-1.5 py-1 bg-white border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[10px] font-semibold text-slate-700 truncate">No Local</span>
+                          <span className="text-[9px] text-sky-600 font-bold group-hover:underline flex items-center gap-0.5">
+                            <ZoomIn className="w-2.5 h-2.5" />
+                            Ver
+                          </span>
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openEditEquipmentModal(eq)}
+                        className="flex flex-col items-center justify-center h-[106px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-2 text-center group"
+                        title="Adicionar foto da instalação no local"
+                      >
+                        <Camera className="w-4 h-4 mb-1 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                        <span className="text-[10px] font-semibold leading-tight">+ Instalação</span>
+                        <span className="text-[9px] text-slate-400 mt-0.5">Evap / Condens</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -876,11 +1065,15 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
       {/* Modal: Equipment */}
       {isEquipmentModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+            <h2 className="text-lg font-bold text-slate-900 mb-1">
               {editingEquipment ? 'Editar Equipamento' : 'Cadastrar Novo Equipamento'}
             </h2>
-            <form onSubmit={handleSaveEquipmentSubmit} className="space-y-3 text-xs">
+            <p className="text-xs text-slate-500 mb-4">
+              Identificação técnica, dados de placa, localização e registro fotográfico completo.
+            </p>
+
+            <form onSubmit={handleSaveEquipmentSubmit} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Cliente Proprietário *</label>
                 <select
@@ -896,7 +1089,7 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Tipo de Equipamento</label>
                   <select
@@ -924,13 +1117,24 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     required
                     value={equipFormBrand}
                     onChange={(e) => setEquipFormBrand(e.target.value)}
-                    placeholder="Ex: Daikin, Carrier, Elgin"
+                    placeholder="Ex: Daikin, Carrier, Elgin, LG"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Modelo Comercial / Código</label>
+                  <input
+                    type="text"
+                    value={equipFormModel}
+                    onChange={(e) => setEquipFormModel(e.target.value)}
+                    placeholder="Ex: 42XQL060515LC / FTKC12Q5VL"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  />
+                </div>
+
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Capacidade / Potência *</label>
                   <input
@@ -938,18 +1142,42 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     required
                     value={equipFormCapacity}
                     onChange={(e) => setEquipFormCapacity(e.target.value)}
-                    placeholder="Ex: 12.000 BTU ou 3.5 HP"
+                    placeholder="Ex: 12.000 BTU, 36.000 BTU ou 5 HP"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Gás Refrigerante</label>
                   <input
                     type="text"
                     value={equipFormGasType}
                     onChange={(e) => setEquipFormGasType(e.target.value)}
-                    placeholder="R-410A / R-32 / R-404A"
+                    placeholder="R-410A / R-32 / R-22"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Corrente Nominal (A)</label>
+                  <input
+                    type="text"
+                    value={equipFormNominalCurrent}
+                    onChange={(e) => setEquipFormNominalCurrent(e.target.value)}
+                    placeholder="Ex: 12.8 A (FLA)"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Tensão / Alimentação</label>
+                  <input
+                    type="text"
+                    value={equipFormVoltage}
+                    onChange={(e) => setEquipFormVoltage(e.target.value)}
+                    placeholder="220V 1F 60Hz"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
                 </div>
@@ -962,21 +1190,34 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                   required
                   value={equipFormLocation}
                   onChange={(e) => setEquipFormLocation(e.target.value)}
-                  placeholder="Ex: Sala de Reunião 2º andar / Fundos da Cozinha"
+                  placeholder="Ex: Sala de Reunião 2º andar / Varanda técnica dos quartos"
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Número de Série</label>
                   <input
                     type="text"
                     value={equipFormSerial}
                     onChange={(e) => setEquipFormSerial(e.target.value)}
-                    placeholder="SN-123456"
+                    placeholder="SN-12345678"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Status Operacional</label>
+                  <select
+                    value={equipFormStatus}
+                    onChange={(e) => setEquipFormStatus(e.target.value as EquipmentStatus)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                  >
+                    <option value="Operando Normal">Operando Normal</option>
+                    <option value="Atenção / Manutenção Pendente">Atenção / Manutenção Pendente</option>
+                    <option value="Parado / Necessita Reparo">Parado / Necessita Reparo</option>
+                  </select>
                 </div>
 
                 <div>
@@ -990,17 +1231,62 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 </div>
               </div>
 
+              {/* ========================================================= */}
+              {/* Uploader com Auto-Compressão: Etiqueta & Instalação        */}
+              {/* ========================================================= */}
+              <EquipmentPhotoUploader
+                labelPhoto={{
+                  url: equipFormLabelPhotoUrl,
+                  date: equipFormLabelPhotoDate
+                }}
+                installationPhoto={{
+                  url: equipFormInstallPhotoUrl,
+                  date: equipFormInstallPhotoDate
+                }}
+                onChangeLabelPhoto={(url, date) => {
+                  setEquipFormLabelPhotoUrl(url);
+                  setEquipFormLabelPhotoDate(date);
+                }}
+                onChangeInstallationPhoto={(url, date) => {
+                  setEquipFormInstallPhotoUrl(url);
+                  setEquipFormInstallPhotoDate(date);
+                }}
+                onPreviewPhoto={(type) => {
+                  // Temporary preview in lightbox
+                  const tempEquip: Equipment = {
+                    id: editingEquipment ? editingEquipment.id : 'preview',
+                    clientId: equipFormClientId,
+                    clientName: clients.find(c => c.id === equipFormClientId)?.name || 'Cliente',
+                    type: equipFormType,
+                    brand: equipFormBrand,
+                    model: equipFormModel,
+                    capacity: equipFormCapacity,
+                    gasType: equipFormGasType,
+                    serialNumber: equipFormSerial,
+                    nominalCurrent: equipFormNominalCurrent,
+                    voltage: equipFormVoltage,
+                    locationDescription: equipFormLocation,
+                    status: equipFormStatus,
+                    labelPhotoUrl: equipFormLabelPhotoUrl,
+                    labelPhotoDate: equipFormLabelPhotoDate,
+                    installationPhotoUrl: equipFormInstallPhotoUrl,
+                    installationPhotoDate: equipFormInstallPhotoDate
+                  };
+                  openLightbox(tempEquip, type);
+                }}
+              />
+
               <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsEquipmentModalOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs"
+                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs"
+                  className="px-5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-sm transition-colors"
                 >
                   Salvar Equipamento
                 </button>
@@ -1009,6 +1295,19 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* Visualizador em Tela Cheia (Lightbox) com Zoom e Download */}
+      {/* ========================================================= */}
+      <EquipmentPhotoLightbox
+        equipment={lightboxEquipment}
+        initialType={lightboxPhotoType}
+        isOpen={isLightboxOpen}
+        onClose={() => {
+          setIsLightboxOpen(false);
+          setLightboxEquipment(null);
+        }}
+      />
 
     </div>
   );

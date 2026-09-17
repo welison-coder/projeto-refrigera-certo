@@ -17,13 +17,30 @@ import { MaintenanceHistoryView } from './components/MaintenanceHistoryView';
 import { ClientsEquipmentView } from './components/ClientsEquipmentView';
 import { CompanyModal } from './components/CompanyModal';
 import { ReminderModal } from './components/ReminderModal';
+import { VoiceAssistantModal } from './components/VoiceAssistantModal';
+import { VoiceAssistantButton } from './components/VoiceAssistantButton';
 import { BrandLogo } from './components/BrandLogo';
 import { PublicSignaturePortal } from './components/PublicSignaturePortal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { notifyLogoUpdated } from './utils/logoManager';
 
 function MainApp() {
   const { userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [clientsInitialTab, setClientsInitialTab] = useState<'clients' | 'equipment'>('clients');
+
+  const handleNavigateToEquipment = () => {
+    setClientsInitialTab('equipment');
+    setActiveTab('clients');
+  };
+
+  const handleNavigateToClients = () => {
+    setClientsInitialTab('clients');
+    setActiveTab('clients');
+  };
+
+  // Voice Assistant Modal state
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState<boolean>(false);
 
   // Core state from storage
   const [clients, setClients] = useState<Client[]>(() => storage.getClients());
@@ -115,6 +132,7 @@ function MainApp() {
 
   useEffect(() => {
     storage.saveCompanySettings(companySettings);
+    notifyLogoUpdated(companySettings.logoUrl || null);
   }, [companySettings]);
 
   // 2. Automatically save any change to the cloud for all devices (No export needed!)
@@ -327,6 +345,9 @@ function MainApp() {
         onNewVisit={() => setActiveTab('visits')}
         onNewQuote={() => setActiveTab('quotes')}
         onExportBackup={() => storage.exportAllData()}
+        onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
+        onNavigateToEquipment={handleNavigateToEquipment}
+        onNavigateToClients={handleNavigateToClients}
       />
 
       {/* Main Content Area */}
@@ -390,6 +411,7 @@ function MainApp() {
           <ClientsEquipmentView
             clients={clients}
             equipment={equipment}
+            initialTab={clientsInitialTab}
             onSaveClient={handleSaveClient}
             onDeleteClient={handleDeleteClient}
             onSaveEquipment={handleSaveEquipment}
@@ -433,6 +455,33 @@ function MainApp() {
         visit={reminderModalData?.visit || null}
         companySettings={companySettings}
         autoTriggered={reminderModalData?.autoTriggered}
+      />
+
+      {/* Floating Voice Assistant Button (Accessible anywhere) */}
+      <VoiceAssistantButton
+        onClick={() => setIsVoiceAssistantOpen(true)}
+      />
+
+      {/* Voice Assistant Modal & Dialog Flow */}
+      <VoiceAssistantModal
+        isOpen={isVoiceAssistantOpen}
+        onClose={() => setIsVoiceAssistantOpen(false)}
+        clients={clients}
+        equipment={equipment}
+        visits={visits}
+        quotes={quotes}
+        maintenanceLogs={maintenanceLogs}
+        onSaveVisit={handleSaveVisit}
+        onSaveQuote={handleSaveQuote}
+        onSaveLog={handleSaveLog}
+        onSaveClient={handleSaveClient}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          setIsVoiceAssistantOpen(false);
+        }}
+        onTriggerReminderModal={(visit) => {
+          handleOpenReminderModal(visit, true);
+        }}
       />
 
     </div>

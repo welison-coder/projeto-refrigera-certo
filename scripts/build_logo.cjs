@@ -3,27 +3,23 @@ const path = require('path');
 const opentype = require('opentype.js');
 const sharp = require('sharp');
 
-async function generateLogo() {
+async function renderBrandLogo() {
   const font900Buffer = fs.readFileSync(path.join(__dirname, 'fonts/Montserrat-900.ttf'));
   const font700Buffer = fs.readFileSync(path.join(__dirname, 'fonts/Montserrat-700.ttf'));
 
   const font900 = opentype.parse(font900Buffer.buffer);
   const font700 = opentype.parse(font700Buffer.buffer);
 
-  // Exact brand colors sampled from ar_solucoes_evolution_horizontal_HD.png
+  // Exact brand colors sampled from uploaded ar_solucoes_evolution_horizontal_HD (1).png
   const CRIMSON = '#E31B44';
-  const NAVY = '#101626';
+  const NAVY = '#0F172A';
   const SLATE = '#5C6B7E';
-  const DIVIDER = '#D8DEE4';
+  const DIVIDER = '#D1D5DB';
 
-  // Canvas dimensions with optimal aspect ratio
-  const width = 1420;
-  const height = 400;
-
-  // 1. Text Geometry
-  const mainFontSize = 136;
-  const mainY = 210;
-  const wordmarkStartX = 450;
+  // Typography dimensions
+  const mainFontSize = 140;
+  const mainY = 196;
+  const wordmarkStartX = 445;
 
   // "Ar"
   const arPath = font900.getPath('Ar', wordmarkStartX, mainY, mainFontSize);
@@ -34,14 +30,16 @@ async function generateLogo() {
   const solucoesPath = font900.getPath('SOLUÇÕES', solucoesStartX, mainY, mainFontSize);
   const solucoesAdvance = font900.getAdvanceWidth('SOLUÇÕES', mainFontSize);
 
+  const wordmarkEnd = solucoesStartX + solucoesAdvance;
+
   // "CLIMATIZAÇÃO"
   const subText = 'CLIMATIZAÇÃO';
-  const subFontSize = 41;
-  const subY = 302;
+  const subFontSize = 40;
+  const subY = 286;
   const subStartX = wordmarkStartX + 4;
   
   // Calculate total natural width of subText to evenly space it to match the wordmark length
-  const targetSubWidth = (solucoesStartX + solucoesAdvance - 40) - subStartX;
+  const targetSubWidth = wordmarkEnd - 55 - subStartX;
   let naturalSubWidth = 0;
   for (const char of subText) {
     naturalSubWidth += font700.getAdvanceWidth(char, subFontSize);
@@ -58,63 +56,91 @@ async function generateLogo() {
   }
 
   // Red dot after CLIMATIZAÇÃO
-  const dotSubX = currentSubX + 38;
-  const dotSubY = 290;
-  const dotSubRadius = 10;
+  const dotSubX = currentSubX + 28;
+  const dotSubY = 274;
+  const dotSubRadius = 9;
 
-  // 2. Left Emblem: Intertwined slanted 'A' and upright 'r'
-  // Center of emblem is X = 220, Y = 200
+  // Tight canvas calculation
+  const minX = 65;
+  const minY = 38;
+  const maxX = dotSubX + 24;
+  const maxY = 322;
+  const vbWidth = Math.ceil(maxX - minX);
+  const vbHeight = Math.ceil(maxY - minY);
+
+  // Emblem:
+  // Beautiful, continuous, authentic monogram "A" + "r" with wave and red terminal dot
   const emblemSvg = `
-    <g id="brand-emblem" transform="translate(45, 10)">
-      <!-- RED 'A' GLYPH (slanted forward ~14 degrees) -->
-      <!-- Left leg going up to apex -->
+    <g id="brand-emblem">
+      <!-- RED "A" GLYPH - Slanted ~14deg with smooth apex and clean base feet -->
+      <!-- Left leg & apex & right outer leg -->
       <path 
-        d="M 120 315 L 62 315 L 175 62 C 182 45 198 38 214 42 C 228 45 238 58 245 74 L 295 186 L 246 186 L 208 98 Z" 
-        fill="${CRIMSON}" 
-      />
-      <!-- Dynamic horizontal crossbar of A passing behind the r stem -->
-      <path 
-        d="M 116 242 L 285 242 C 300 242 308 252 305 264 C 302 276 290 282 272 282 L 95 282 Z" 
-        fill="${CRIMSON}" 
-      />
-      <!-- Bottom right descending foot of A -->
-      <path 
-        d="M 235 315 L 295 315 L 274 262 L 235 262 Z" 
+        d="M 92 315 
+           L 155 315 
+           L 188 226 
+           L 242 226 
+           L 256 315 
+           L 318 315 
+           L 236 60 
+           C 229 44 216 38 202 42 
+           C 188 46 179 58 172 74 
+           Z 
+           M 204 112 
+           L 224 176 
+           L 186 176 
+           Z" 
         fill="${CRIMSON}" 
       />
 
-      <!-- UPRIGHT 'r' IN DEEP NAVY -->
-      <!-- Vertical pillar/stem with rounded corners -->
-      <rect x="210" y="148" width="58" height="167" rx="12" fill="${NAVY}" />
-
-      <!-- Smooth arch of 'r' branching to the right -->
+      <!-- Dynamic crossbar extending to the right through the r -->
       <path 
-        d="M 264 182 C 264 142 292 120 334 120 C 362 120 388 134 398 158 C 400 174 386 192 364 192 C 342 192 322 178 308 165 C 300 158 288 160 274 172 L 274 205 Z" 
+        d="M 170 234 
+           L 302 234 
+           C 316 234 324 244 322 255 
+           C 320 266 308 272 292 272 
+           L 154 272 
+           Z" 
+        fill="${CRIMSON}" 
+      />
+
+      <!-- UPRIGHT "r" STEM (Deep Navy with smooth rounded corners) -->
+      <rect x="206" y="142" width="56" height="173" rx="12" fill="${NAVY}" />
+
+      <!-- Smooth sweeping arch of "r" branching rightward -->
+      <path 
+        d="M 260 178 
+           C 260 138 288 116 330 116 
+           C 358 116 384 130 394 154 
+           C 396 170 382 188 360 188 
+           C 338 188 318 174 304 161 
+           C 296 154 284 156 270 168 
+           L 270 200 
+           Z" 
         fill="${NAVY}" 
       />
 
-      <!-- Crimson red dot accent on the right tip of the arch -->
-      <circle cx="380" cy="168" r="16" fill="${CRIMSON}" />
+      <!-- Crimson accent dot inside terminal of the "r" arch -->
+      <circle cx="376" cy="164" r="14.5" fill="${CRIMSON}" />
 
-      <!-- Concentric broadcast signal wave arc above the r arch -->
+      <!-- Concentric broadcast / cooling breeze arc above the "r" -->
       <path 
-        d="M 314 105 C 340 90 374 94 398 114" 
+        d="M 310 102 C 336 86 372 90 396 110" 
         stroke="${CRIMSON}" 
-        stroke-width="9" 
+        stroke-width="8.5" 
         stroke-linecap="round" 
         fill="none" 
       />
     </g>
   `;
 
-  // Full SVG with transparent background
+  // Full SVG with transparent background tightly bounding the contents
   const fullSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${vbWidth} ${vbHeight}" width="${vbWidth}" height="${vbHeight}" fill="none">
   <!-- Left Emblem -->
   ${emblemSvg}
 
   <!-- Vertical Divider Line -->
-  <line x1="422" y1="72" x2="422" y2="330" stroke="${DIVIDER}" stroke-width="3" stroke-linecap="round" />
+  <line x1="422" y1="52" x2="422" y2="315" stroke="${DIVIDER}" stroke-width="2.8" stroke-linecap="round" />
 
   <!-- "Ar" in Crimson -->
   <path d="${arPath.toPathData(2)}" fill="${CRIMSON}" />
@@ -129,33 +155,47 @@ async function generateLogo() {
   <circle cx="${dotSubX}" cy="${dotSubY}" r="${dotSubRadius}" fill="${CRIMSON}" />
 </svg>`.trim();
 
-  // 1. Write public/logo.svg
+  // 1. Write public/logo.svg and dist/logo.svg
   fs.writeFileSync(path.join(__dirname, '../public/logo.svg'), fullSvg, 'utf-8');
+  if (fs.existsSync(path.join(__dirname, '../dist'))) {
+    fs.writeFileSync(path.join(__dirname, '../dist/logo.svg'), fullSvg, 'utf-8');
+  }
 
-  // 2. Generate HD PNG with transparent background
-  const pngBuffer = await sharp(Buffer.from(fullSvg))
+  // 2. High-DPI transparent PNG (rendered at 2x density for ultra-crisp Retina / HD displays)
+  const targetWidth = vbWidth * 2;
+  const targetHeight = vbHeight * 2;
+
+  const pngBuffer = await sharp(Buffer.from(fullSvg), { density: 144 })
+    .resize(targetWidth, targetHeight)
     .png({ compressionLevel: 9 })
     .toBuffer();
 
   fs.writeFileSync(path.join(__dirname, '../public/ar_solucoes_evolution_horizontal_HD.png'), pngBuffer);
   fs.writeFileSync(path.join(__dirname, '../public/logo.png'), pngBuffer);
 
-  // 3. Also generate a clean white-background version if needed
+  if (fs.existsSync(path.join(__dirname, '../dist'))) {
+    fs.writeFileSync(path.join(__dirname, '../dist/ar_solucoes_evolution_horizontal_HD.png'), pngBuffer);
+    fs.writeFileSync(path.join(__dirname, '../dist/logo.png'), pngBuffer);
+  }
+
+  // 3. Crisp white-background version
   const whiteBgSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-  <rect width="${width}" height="${height}" fill="#FFFFFF" />
-  ${fullSvg.replace('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1420 400" width="1420" height="400" fill="none">', '').replace('</svg>', '')}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${vbWidth} ${vbHeight}" width="${vbWidth}" height="${vbHeight}">
+  <rect x="${minX}" y="${minY}" width="${vbWidth}" height="${vbHeight}" fill="#FFFFFF" />
+  ${fullSvg.replace(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${vbWidth} ${vbHeight}" width="${vbWidth}" height="${vbHeight}" fill="none">`, '').replace('</svg>', '')}
 </svg>`;
-  
-  const whitePngBuffer = await sharp(Buffer.from(whiteBgSvg))
+
+  const whitePngBuffer = await sharp(Buffer.from(whiteBgSvg), { density: 144 })
+    .resize(targetWidth, targetHeight)
     .png({ compressionLevel: 9 })
     .toBuffer();
-  fs.writeFileSync(path.join(__dirname, '../public/ar_solucoes_evolution_horizontal_HD_white.png'), whitePngBuffer);
 
-  console.log('Successfully generated:');
-  console.log(' - /public/logo.svg');
-  console.log(' - /public/ar_solucoes_evolution_horizontal_HD.png (' + pngBuffer.length + ' bytes)');
-  console.log(' - /public/logo.png');
+  fs.writeFileSync(path.join(__dirname, '../public/ar_solucoes_evolution_horizontal_HD_white.png'), whitePngBuffer);
+  if (fs.existsSync(path.join(__dirname, '../dist'))) {
+    fs.writeFileSync(path.join(__dirname, '../dist/ar_solucoes_evolution_horizontal_HD_white.png'), whitePngBuffer);
+  }
+
+  console.log(`Successfully generated HD Logo: ${targetWidth}x${targetHeight}px, viewBox: ${minX} ${minY} ${vbWidth} ${vbHeight}`);
 }
 
-generateLogo().catch(console.error);
+renderBrandLogo().catch(console.error);
