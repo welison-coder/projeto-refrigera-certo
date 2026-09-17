@@ -601,6 +601,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Cadastros
           </button>
+          <button
+            id="mobile-btn-empresa"
+            onClick={() => {
+              onOpenCompanySettings();
+              closeMenu();
+            }}
+            className="px-3 py-1.5 rounded-md font-medium whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition-colors"
+            title="Dados e Configurações da Empresa"
+          >
+            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+            <span>Empresa</span>
+          </button>
         </div>
 
       </div>

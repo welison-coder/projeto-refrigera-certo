@@ -41,6 +41,7 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
 
   // Sincronizar formData sempre que as props mudarem ao abrir o modal
   useEffect(() => {
@@ -49,8 +50,6 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
       setLogoFeedback(null);
     }
   }, [isOpen, companySettings]);
-
-  if (!isOpen) return null;
 
   const handleChange = (field: keyof CompanySettings, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -211,8 +210,6 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
     reader.readAsText(file);
   };
 
-  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
-
   const handleReset = () => {
     setIsResetConfirmOpen(true);
   };
@@ -222,6 +219,8 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
     onReloadAllData();
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">

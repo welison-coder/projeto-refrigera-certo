@@ -25,7 +25,7 @@ import { PublicSignaturePortal } from './components/PublicSignaturePortal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { notifyLogoUpdated } from './utils/logoManager';
 import { startAutoBackupWatcher } from './services/autoBackupService';
-import { Download, CheckCircle2, X, Clock } from 'lucide-react';
+import { Download, CheckCircle2, X, Clock, Building2 } from 'lucide-react';
 
 function MainApp() {
   const { userProfile } = useAuth();
@@ -479,9 +479,20 @@ function MainApp() {
               © {companySettings.foundingYear || 2013} - {new Date().getFullYear()} <strong>{companySettings.tradeName || 'Ar Soluções Climatização'}</strong> — Climatização Especializada • Desde {companySettings.foundingYear || 2013}
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">
-            Responsável Técnico: <strong className="text-slate-600">{companySettings.technicianResponsible}</strong>
-          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              id="footer-btn-empresa"
+              onClick={() => setIsCompanyModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-colors text-xs font-semibold shadow-2xs"
+            >
+              <Building2 className="w-3.5 h-3.5 text-sky-600" />
+              <span>Dados da Empresa</span>
+            </button>
+            <p className="text-[11px] text-slate-400">
+              Responsável Técnico: <strong className="text-slate-600">{companySettings.technicianResponsible}</strong>
+            </p>
+          </div>
         </div>
       </footer>
 
