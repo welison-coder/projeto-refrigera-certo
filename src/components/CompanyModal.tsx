@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Building2, Save, Download, Upload, RotateCcw, ShieldCheck, Search, Loader2, CheckCircle2, AlertCircle, MapPin, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Building2, Save, Download, Upload, RotateCcw, ShieldCheck, Search, Loader2, CheckCircle2, AlertCircle, MapPin, Image as ImageIcon, Trash2, Clock } from 'lucide-react';
 import { CompanySettings } from '../types';
 import { storage } from '../utils/storage';
 import { BrandLogo } from './BrandLogo';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 import { processLogoUpload, notifyLogoUpdated } from '../utils/logoManager';
+import { getAutoBackupStatus, triggerManualAutoBackupTest } from '../services/autoBackupService';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface CompanyModalProps {
   isOpen: boolean;
@@ -209,12 +211,16 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
     reader.readAsText(file);
   };
 
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
   const handleReset = () => {
-    if (confirm('Deseja restaurar os dados de demonstração padrão da Ar Soluções?')) {
-      storage.resetToDefault();
-      onReloadAllData();
-      onClose();
-    }
+    setIsResetConfirmOpen(true);
+  };
+
+  const executeReset = () => {
+    storage.resetToDefault();
+    onReloadAllData();
+    onClose();
   };
 
   return (
@@ -507,6 +513,55 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
             />
           </div>
 
+          {/* Rotina Automática Diária de Backup */}
+          <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-slate-800 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-emerald-600 text-white">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs text-emerald-950">
+                      Backup Automático Diário
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-extrabold uppercase tracking-wider">
+                      Ativo às 18:00
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-emerald-800 block">
+                    Download automático todos os dias às 18:00
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerManualAutoBackupTest();
+                  setImportStatus('Backup automático das 18h gerado e baixado agora para verificação!');
+                  setTimeout(() => setImportStatus(''), 5000);
+                }}
+                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-white border border-emerald-300 hover:bg-emerald-100/50 px-2.5 py-1 rounded-lg transition-colors shadow-2xs shrink-0"
+                title="Disparar o download de teste do backup diário"
+              >
+                Testar 18h Agora
+              </button>
+            </div>
+
+            <div className="text-[11px] text-emerald-900/90 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 border-t border-emerald-200/60">
+              <span>Status: <strong>Programado</strong></span>
+              <span>•</span>
+              <span>Próxima execução: <strong>{getAutoBackupStatus().nextRunText}</strong></span>
+              {getAutoBackupStatus().lastDate && (
+                <>
+                  <span>•</span>
+                  <span>Último executado: <strong>{getAutoBackupStatus().lastDate}</strong></span>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Backup and Restore Controls */}
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
             <span className="font-bold text-slate-800 uppercase tracking-wider block text-[11px]">
@@ -588,6 +643,16 @@ export const CompanyModal: React.FC<CompanyModalProps> = ({
         </form>
 
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={isResetConfirmOpen}
+        title="Restaurar Demonstração"
+        itemName="Dados Padrão da Ar Soluções"
+        description="Deseja realmente restaurar todos os dados de demonstração padrão do sistema? Todas as alterações não salvas em backup serão substituídas."
+        confirmButtonText="Restaurar Padrão"
+        onConfirm={executeReset}
+        onClose={() => setIsResetConfirmOpen(false)}
+      />
     </div>
   );
 };

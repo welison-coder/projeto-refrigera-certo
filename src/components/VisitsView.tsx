@@ -26,6 +26,7 @@ import { generateGoogleCalendarUrl, downloadICSFile } from '../utils/calendarRem
 import { RouteButton } from './RouteButton';
 import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface VisitsViewProps {
   visits: TechnicalVisit[];
@@ -54,6 +55,19 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingVisit, setEditingVisit] = useState<TechnicalVisit | null>(null);
+
+  // Deletion confirmation modal state
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    itemName?: string;
+    description?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    onConfirm: () => {}
+  });
 
   // Form states
   const [formClientId, setFormClientId] = useState<string>('');
@@ -370,10 +384,15 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
-                          if (confirm(`Deseja realmente excluir a visita ${visit.code}?`)) {
-                            onDeleteVisit(visit.id);
-                          }
+                          setDeleteModalState({
+                            isOpen: true,
+                            title: 'Excluir Visita Técnica',
+                            itemName: `${visit.code} - ${visit.clientName}`,
+                            description: `Deseja realmente excluir a visita técnica ${visit.code} agendada para ${visit.clientName} em ${formatDateBR(visit.date)}?`,
+                            onConfirm: () => onDeleteVisit(visit.id)
+                          });
                         }}
                         className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Excluir Visita"
@@ -942,6 +961,16 @@ export const VisitsView: React.FC<VisitsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Visit Deletion */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalState.isOpen}
+        title={deleteModalState.title}
+        itemName={deleteModalState.itemName}
+        description={deleteModalState.description}
+        onConfirm={deleteModalState.onConfirm}
+        onClose={() => setDeleteModalState(prev => ({ ...prev, isOpen: false }))}
+      />
 
     </div>
   );

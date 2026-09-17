@@ -28,6 +28,7 @@ import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation
 import { BrandLogo } from './BrandLogo';
 import { RouteButton } from './RouteButton';
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface QuotesViewProps {
   quotes: Quote[];
@@ -58,6 +59,19 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   // Print/Preview Modal
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(initialSelectedQuote || null);
   const [copiedQuoteId, setCopiedQuoteId] = useState<string | null>(null);
+
+  // Deletion confirmation modal state
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    itemName?: string;
+    description?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    onConfirm: () => {}
+  });
 
   const handleCopySignatureLink = (quoteId: string) => {
     const link = `${window.location.origin}/?assinar=${quoteId}`;
@@ -559,10 +573,15 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
-                        if (confirm(`Deseja excluir o orçamento ${quote.number}?`)) {
-                          onDeleteQuote(quote.id);
-                        }
+                        setDeleteModalState({
+                          isOpen: true,
+                          title: 'Excluir Orçamento',
+                          itemName: `${quote.number} - ${quote.clientName}`,
+                          description: `Tem certeza que deseja excluir o orçamento ${quote.number} do cliente ${quote.clientName}?`,
+                          onConfirm: () => onDeleteQuote(quote.id)
+                        });
                       }}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Excluir Orçamento"
@@ -1320,6 +1339,16 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Quote Deletion */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalState.isOpen}
+        title={deleteModalState.title}
+        itemName={deleteModalState.itemName}
+        description={deleteModalState.description}
+        onConfirm={deleteModalState.onConfirm}
+        onClose={() => setDeleteModalState(prev => ({ ...prev, isOpen: false }))}
+      />
 
     </div>
   );

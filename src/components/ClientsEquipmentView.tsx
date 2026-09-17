@@ -24,7 +24,9 @@ import {
   ZoomIn,
   Download,
   Image as ImageIcon,
-  Zap
+  Zap,
+  ShieldCheck,
+  Wind
 } from 'lucide-react';
 import { Client, Equipment, EquipmentStatus } from '../types';
 import { formatDateBR } from '../utils/formatters';
@@ -33,6 +35,7 @@ import { getGoogleMapsRouteUrl, normalizeLocationUrl } from '../utils/navigation
 import { cleanCEP, formatCEP, fetchAddressByCEP } from '../utils/cep';
 import { EquipmentPhotoLightbox, PhotoType } from './EquipmentPhotoLightbox';
 import { EquipmentPhotoUploader } from './EquipmentPhotoUploader';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface ClientsEquipmentViewProps {
   clients: Client[];
@@ -110,6 +113,21 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
   const [equipFormLabelPhotoDate, setEquipFormLabelPhotoDate] = useState<string | undefined>(undefined);
   const [equipFormInstallPhotoUrl, setEquipFormInstallPhotoUrl] = useState<string | undefined>(undefined);
   const [equipFormInstallPhotoDate, setEquipFormInstallPhotoDate] = useState<string | undefined>(undefined);
+  const [equipFormCondenserPhotoUrl, setEquipFormCondenserPhotoUrl] = useState<string | undefined>(undefined);
+  const [equipFormCondenserPhotoDate, setEquipFormCondenserPhotoDate] = useState<string | undefined>(undefined);
+
+  // Deletion confirmation modal state
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    itemName?: string;
+    description?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    onConfirm: () => {}
+  });
 
   // Fullscreen Lightbox viewer state
   const [lightboxEquipment, setLightboxEquipment] = useState<Equipment | null>(null);
@@ -255,6 +273,8 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setEquipFormLabelPhotoDate(undefined);
     setEquipFormInstallPhotoUrl(undefined);
     setEquipFormInstallPhotoDate(undefined);
+    setEquipFormCondenserPhotoUrl(undefined);
+    setEquipFormCondenserPhotoDate(undefined);
     
     const d = new Date();
     d.setDate(d.getDate() + 90);
@@ -281,6 +301,8 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
     setEquipFormLabelPhotoDate(eq.labelPhotoDate);
     setEquipFormInstallPhotoUrl(eq.installationPhotoUrl);
     setEquipFormInstallPhotoDate(eq.installationPhotoDate);
+    setEquipFormCondenserPhotoUrl(eq.condenserPhotoUrl);
+    setEquipFormCondenserPhotoDate(eq.condenserPhotoDate);
     setIsEquipmentModalOpen(true);
   };
 
@@ -311,7 +333,9 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
       labelPhotoUrl: equipFormLabelPhotoUrl,
       labelPhotoDate: equipFormLabelPhotoDate,
       installationPhotoUrl: equipFormInstallPhotoUrl,
-      installationPhotoDate: equipFormInstallPhotoDate
+      installationPhotoDate: equipFormInstallPhotoDate,
+      condenserPhotoUrl: equipFormCondenserPhotoUrl,
+      condenserPhotoDate: equipFormCondenserPhotoDate
     };
 
     onSaveEquipment(equipToSave);
@@ -435,12 +459,17 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
-                          if (confirm(`Deseja excluir o cliente ${client.name}?`)) {
-                            onDeleteClient(client.id);
-                          }
+                          setDeleteModalState({
+                            isOpen: true,
+                            title: 'Excluir Cliente',
+                            itemName: client.name,
+                            description: `Tem certeza que deseja excluir o cliente "${client.name}"? Todos os aparelhos associados a ele também serão excluídos do sistema.`,
+                            onConfirm: () => onDeleteClient(client.id)
+                          });
                         }}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                         title="Excluir Cliente"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -604,24 +633,31 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     <p className="text-xs text-slate-500 font-medium">{eq.clientName}</p>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditEquipmentModal(eq)}
-                      className="p-1.5 text-slate-400 hover:text-sky-600 rounded"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm(`Deseja excluir a máquina ${eq.brand} ${eq.capacity}?`)) {
-                          onDeleteEquipment(eq.id);
-                        }
-                      }}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEditEquipmentModal(eq)}
+                        className="p-1.5 text-slate-400 hover:text-sky-600 rounded"
+                        title="Editar Equipamento"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeleteModalState({
+                            isOpen: true,
+                            title: 'Excluir Aparelho',
+                            itemName: `${eq.brand} ${eq.capacity} (${eq.locationDescription})`,
+                            description: `Tem certeza que deseja excluir este equipamento (${eq.brand} ${eq.capacity}) vinculado ao cliente ${eq.clientName}?`,
+                            onConfirm: () => onDeleteEquipment(eq.id)
+                          });
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        title="Excluir Equipamento"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                 </div>
 
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5 text-xs text-slate-600">
@@ -666,50 +702,47 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 </div>
 
                 {/* ========================================================= */}
-                {/* Miniaturas Diretas nos Cartões (Etiqueta & Instalação)     */}
+                {/* Miniaturas Diretas nos Cartões (3 Opções de Foto)         */}
                 {/* ========================================================= */}
                 <div className="pt-2 border-t border-slate-100 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
                       <Camera className="w-3.5 h-3.5 text-sky-600" />
-                      Registro Fotográfico
+                      Registro Fotográfico (3 Fotos)
                     </span>
                     <span className="text-[10px] font-semibold text-slate-400">
-                      {(eq.labelPhotoUrl && eq.installationPhotoUrl)
-                        ? '2 fotos (completas)'
-                        : (eq.labelPhotoUrl || eq.installationPhotoUrl)
-                        ? '1 foto registrada'
-                        : 'Nenhuma foto'}
+                      {[eq.labelPhotoUrl, eq.installationPhotoUrl, eq.condenserPhotoUrl].filter(Boolean).length === 3
+                        ? '3 fotos (completas)'
+                        : `${[eq.labelPhotoUrl, eq.installationPhotoUrl, eq.condenserPhotoUrl].filter(Boolean).length} de 3 fotos`}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {/* 1. Miniatura Etiqueta Técnica */}
                     {eq.labelPhotoUrl ? (
                       <button
                         type="button"
                         onClick={() => openLightbox(eq, 'label')}
-                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                         title="Inspecionar foto da Etiqueta Técnica em Tela Cheia (Lightbox)"
                       >
-                        <div className="h-20 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
+                        <div className="h-16 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
                           <img
                             src={eq.labelPhotoUrl}
                             alt="Etiqueta Técnica"
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
-                          <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ZoomIn className="w-3 h-3 text-sky-300" />
+                          <div className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ZoomIn className="w-2.5 h-2.5 text-sky-300" />
                           </div>
-                          <span className="absolute bottom-1 left-1 text-[9px] font-bold text-white bg-sky-600/90 px-1 py-0.2 rounded shadow-xs">
+                          <span className="absolute bottom-0.5 left-0.5 text-[8px] font-bold text-white bg-sky-600/90 px-1 py-0.2 rounded shadow-xs">
                             Etiqueta
                           </span>
                         </div>
-                        <div className="px-1.5 py-1 bg-white border-t border-slate-100 flex items-center justify-between">
-                          <span className="text-[10px] font-semibold text-slate-700 truncate">Placa Técnica</span>
-                          <span className="text-[9px] text-sky-600 font-bold group-hover:underline flex items-center gap-0.5">
-                            <ZoomIn className="w-2.5 h-2.5" />
+                        <div className="px-1 py-0.5 bg-white border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[9px] font-semibold text-slate-700 truncate">Placa</span>
+                          <span className="text-[8px] text-sky-600 font-bold group-hover:underline">
                             Ver
                           </span>
                         </div>
@@ -718,41 +751,40 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                       <button
                         type="button"
                         onClick={() => openEditEquipmentModal(eq)}
-                        className="flex flex-col items-center justify-center h-[106px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-2 text-center group"
+                        className="flex flex-col items-center justify-center h-[90px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-1 text-center group"
                         title="Adicionar foto da etiqueta técnica"
                       >
-                        <Tag className="w-4 h-4 mb-1 text-slate-400 group-hover:text-sky-600 transition-colors" />
-                        <span className="text-[10px] font-semibold leading-tight">+ Etiqueta</span>
-                        <span className="text-[9px] text-slate-400 mt-0.5">Série & BTU</span>
+                        <Tag className="w-3.5 h-3.5 mb-0.5 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                        <span className="text-[9px] font-semibold leading-tight">+ Etiqueta</span>
+                        <span className="text-[8px] text-slate-400">Placa</span>
                       </button>
                     )}
 
-                    {/* 2. Miniatura Instalação no Local */}
+                    {/* 2. Miniatura Instalação / Evaporadora */}
                     {eq.installationPhotoUrl ? (
                       <button
                         type="button"
                         onClick={() => openLightbox(eq, 'installation')}
-                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                        title="Inspecionar foto da Instalação no Local em Tela Cheia (Lightbox)"
+                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        title="Inspecionar foto da Unidade Interna em Tela Cheia (Lightbox)"
                       >
-                        <div className="h-20 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
+                        <div className="h-16 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
                           <img
                             src={eq.installationPhotoUrl}
-                            alt="Instalação no Local"
+                            alt="Instalação Interna"
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
-                          <div className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ZoomIn className="w-3 h-3 text-sky-300" />
+                          <div className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ZoomIn className="w-2.5 h-2.5 text-sky-300" />
                           </div>
-                          <span className="absolute bottom-1 left-1 text-[9px] font-bold text-white bg-emerald-600/90 px-1 py-0.2 rounded shadow-xs">
-                            Instalação
+                          <span className="absolute bottom-0.5 left-0.5 text-[8px] font-bold text-white bg-emerald-600/90 px-1 py-0.2 rounded shadow-xs">
+                            Interna
                           </span>
                         </div>
-                        <div className="px-1.5 py-1 bg-white border-t border-slate-100 flex items-center justify-between">
-                          <span className="text-[10px] font-semibold text-slate-700 truncate">No Local</span>
-                          <span className="text-[9px] text-sky-600 font-bold group-hover:underline flex items-center gap-0.5">
-                            <ZoomIn className="w-2.5 h-2.5" />
+                        <div className="px-1 py-0.5 bg-white border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[9px] font-semibold text-slate-700 truncate">Evap</span>
+                          <span className="text-[8px] text-emerald-600 font-bold group-hover:underline">
                             Ver
                           </span>
                         </div>
@@ -761,12 +793,54 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                       <button
                         type="button"
                         onClick={() => openEditEquipmentModal(eq)}
-                        className="flex flex-col items-center justify-center h-[106px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-2 text-center group"
-                        title="Adicionar foto da instalação no local"
+                        className="flex flex-col items-center justify-center h-[90px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-1 text-center group"
+                        title="Adicionar foto da unidade interna"
                       >
-                        <Camera className="w-4 h-4 mb-1 text-slate-400 group-hover:text-sky-600 transition-colors" />
-                        <span className="text-[10px] font-semibold leading-tight">+ Instalação</span>
-                        <span className="text-[9px] text-slate-400 mt-0.5">Evap / Condens</span>
+                        <Wind className="w-3.5 h-3.5 mb-0.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                        <span className="text-[9px] font-semibold leading-tight">+ Interna</span>
+                        <span className="text-[8px] text-slate-400">Evaporadora</span>
+                      </button>
+                    )}
+
+                    {/* 3. Miniatura Condensadora / Unidade Externa */}
+                    {eq.condenserPhotoUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => openLightbox(eq, 'condenser')}
+                        className="group relative flex flex-col rounded-lg border border-slate-200 overflow-hidden bg-slate-950 text-left hover:border-sky-500 hover:shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        title="Inspecionar foto da Unidade Externa / Condensadora em Tela Cheia (Lightbox)"
+                      >
+                        <div className="h-16 w-full overflow-hidden bg-slate-900 flex items-center justify-center relative">
+                          <img
+                            src={eq.condenserPhotoUrl}
+                            alt="Unidade Externa Condensadora"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                          <div className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ZoomIn className="w-2.5 h-2.5 text-sky-300" />
+                          </div>
+                          <span className="absolute bottom-0.5 left-0.5 text-[8px] font-bold text-white bg-amber-600/90 px-1 py-0.2 rounded shadow-xs">
+                            Externa
+                          </span>
+                        </div>
+                        <div className="px-1 py-0.5 bg-white border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[9px] font-semibold text-slate-700 truncate">Condens</span>
+                          <span className="text-[8px] text-amber-600 font-bold group-hover:underline">
+                            Ver
+                          </span>
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openEditEquipmentModal(eq)}
+                        className="flex flex-col items-center justify-center h-[90px] rounded-lg border border-dashed border-slate-200 hover:border-sky-400 bg-slate-50/70 hover:bg-sky-50/40 text-slate-400 hover:text-sky-700 transition-all p-1 text-center group"
+                        title="Adicionar foto da unidade externa (condensadora)"
+                      >
+                        <Camera className="w-3.5 h-3.5 mb-0.5 text-slate-400 group-hover:text-amber-600 transition-colors" />
+                        <span className="text-[9px] font-semibold leading-tight">+ Externa</span>
+                        <span className="text-[8px] text-slate-400">Condensadora</span>
                       </button>
                     )}
                   </div>
@@ -1232,7 +1306,7 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
               </div>
 
               {/* ========================================================= */}
-              {/* Uploader com Auto-Compressão: Etiqueta & Instalação        */}
+              {/* Uploader com Auto-Compressão: 3 Opções de Foto             */}
               {/* ========================================================= */}
               <EquipmentPhotoUploader
                 labelPhoto={{
@@ -1243,6 +1317,10 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                   url: equipFormInstallPhotoUrl,
                   date: equipFormInstallPhotoDate
                 }}
+                condenserPhoto={{
+                  url: equipFormCondenserPhotoUrl,
+                  date: equipFormCondenserPhotoDate
+                }}
                 onChangeLabelPhoto={(url, date) => {
                   setEquipFormLabelPhotoUrl(url);
                   setEquipFormLabelPhotoDate(date);
@@ -1250,6 +1328,10 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                 onChangeInstallationPhoto={(url, date) => {
                   setEquipFormInstallPhotoUrl(url);
                   setEquipFormInstallPhotoDate(date);
+                }}
+                onChangeCondenserPhoto={(url, date) => {
+                  setEquipFormCondenserPhotoUrl(url);
+                  setEquipFormCondenserPhotoDate(date);
                 }}
                 onPreviewPhoto={(type) => {
                   // Temporary preview in lightbox
@@ -1270,7 +1352,9 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
                     labelPhotoUrl: equipFormLabelPhotoUrl,
                     labelPhotoDate: equipFormLabelPhotoDate,
                     installationPhotoUrl: equipFormInstallPhotoUrl,
-                    installationPhotoDate: equipFormInstallPhotoDate
+                    installationPhotoDate: equipFormInstallPhotoDate,
+                    condenserPhotoUrl: equipFormCondenserPhotoUrl,
+                    condenserPhotoDate: equipFormCondenserPhotoDate
                   };
                   openLightbox(tempEquip, type);
                 }}
@@ -1307,6 +1391,18 @@ export const ClientsEquipmentView: React.FC<ClientsEquipmentViewProps> = ({
           setIsLightboxOpen(false);
           setLightboxEquipment(null);
         }}
+      />
+
+      {/* ========================================================= */}
+      {/* Modal Seguro de Confirmação de Exclusão (Substitui confirm) */}
+      {/* ========================================================= */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalState.isOpen}
+        title={deleteModalState.title}
+        itemName={deleteModalState.itemName}
+        description={deleteModalState.description}
+        onConfirm={deleteModalState.onConfirm}
+        onClose={() => setDeleteModalState(prev => ({ ...prev, isOpen: false }))}
       />
 
     </div>

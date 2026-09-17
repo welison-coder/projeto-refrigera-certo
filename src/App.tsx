@@ -24,6 +24,8 @@ import { BrandLogo } from './components/BrandLogo';
 import { PublicSignaturePortal } from './components/PublicSignaturePortal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { notifyLogoUpdated } from './utils/logoManager';
+import { startAutoBackupWatcher } from './services/autoBackupService';
+import { Download, CheckCircle2, X, Clock } from 'lucide-react';
 
 function MainApp() {
   const { userProfile } = useAuth();
@@ -54,6 +56,13 @@ function MainApp() {
   // Company settings & Backup modals
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState<boolean>(false);
   const [isImportBackupModalOpen, setIsImportBackupModalOpen] = useState<boolean>(false);
+
+  // Backup Automático Diário às 18h Toast State
+  const [autoBackupToast, setAutoBackupToast] = useState<{
+    show: boolean;
+    filename: string;
+    time: string;
+  } | null>(null);
 
   // Reminder modal state
   const [reminderModalData, setReminderModalData] = useState<{ visit: TechnicalVisit; autoTriggered?: boolean } | null>(null);
@@ -109,6 +118,23 @@ function MainApp() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // 1.1 Inicia o Monitor de Backup Automático Diário das 18:00
+  useEffect(() => {
+    const cleanup = startAutoBackupWatcher((detail) => {
+      setAutoBackupToast({
+        show: true,
+        filename: detail.filename,
+        time: detail.timeStr || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      });
+      const timer = setTimeout(() => {
+        setAutoBackupToast((prev) => (prev ? { ...prev, show: false } : null));
+      }, 9000);
+      return () => clearTimeout(timer);
+    });
+
+    return () => cleanup();
   }, []);
 
   // Sync to localStorage
@@ -366,7 +392,6 @@ function MainApp() {
         onNewQuote={() => setActiveTab('quotes')}
         onExportBackup={() => storage.exportAllData()}
         onImportBackup={() => setIsImportBackupModalOpen(true)}
-        onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
         onNavigateToEquipment={handleNavigateToEquipment}
         onNavigateToClients={handleNavigateToClients}
       />
@@ -512,6 +537,50 @@ function MainApp() {
           handleOpenReminderModal(visit, true);
         }}
       />
+
+      {/* Notificação Flutuante de Backup Automático Diário das 18h */}
+      {autoBackupToast?.show && (
+        <div
+          id="toast-auto-backup"
+          className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-50 max-w-sm w-[calc(100vw-2rem)] sm:w-auto bg-slate-900 text-white border border-emerald-500/60 rounded-2xl p-4 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0 border border-emerald-500/30">
+              <Download className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0 pr-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Backup Automático Diário
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                  {autoBackupToast.time}
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 mt-1 font-medium leading-snug">
+                Backup das 18:00 baixado com sucesso! Arquivo salvo em seus Downloads.
+              </p>
+              <div className="mt-1.5 pt-1.5 border-t border-slate-800 flex items-center justify-between gap-2">
+                <span className="text-[10px] text-slate-400 font-mono truncate">
+                  {autoBackupToast.filename}
+                </span>
+                <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider shrink-0">
+                  Rotina 18h
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAutoBackupToast(null)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              title="Fechar notificação"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

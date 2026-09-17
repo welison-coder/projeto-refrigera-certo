@@ -10,7 +10,6 @@ import {
   Upload,
   PlusCircle,
   ShieldCheck,
-  Mic,
   ChevronDown,
   Tag,
   Plus,
@@ -36,7 +35,6 @@ interface NavbarProps {
   onNewQuote: () => void;
   onExportBackup: () => void;
   onImportBackup: () => void;
-  onOpenVoiceAssistant?: () => void;
   onNavigateToEquipment?: () => void;
   onNavigateToClients?: () => void;
 }
@@ -50,7 +48,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewQuote,
   onExportBackup,
   onImportBackup,
-  onOpenVoiceAssistant,
   onNavigateToEquipment,
   onNavigateToClients
 }) => {
@@ -358,8 +355,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <Download className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="font-semibold text-xs">Exportar Backup</div>
-                      <div className="text-[11px] text-slate-400 leading-tight">Cópia de segurança em arquivo JSON</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-xs">Exportar Backup</span>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                          18h Auto
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 leading-tight">Cópia em JSON • Baixa todo dia às 18h</div>
                     </div>
                   </button>
 
@@ -443,20 +445,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Botão do Assistente por Voz */}
-            {onOpenVoiceAssistant && (
-              <button
-                id="btn-navbar-voice-assistant"
-                type="button"
-                onClick={onOpenVoiceAssistant}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-sky-600 via-sky-500 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white shadow-xs transition-all ring-1 ring-sky-400/30 active:scale-95"
-                title="Comando por voz inteligente - Agendamentos e orçamentos"
-              >
-                <Mic className="w-3.5 h-3.5 animate-pulse text-white" />
-                <span className="hidden sm:inline">Voz</span>
-              </button>
-            )}
 
             {/* Indicador de Nuvem Multi-dispositivo */}
             <SyncIndicator />

@@ -1,5 +1,9 @@
 import { Client, Equipment, TechnicalVisit, Quote, MaintenanceLog, CompanySettings } from '../types';
-import { generateSampleLabelPhoto, generateSampleInstallationPhoto } from '../utils/sampleEquipmentPhotos';
+import {
+  generateSampleLabelPhoto,
+  generateSampleInstallationPhoto,
+  generateSampleCondenserPhoto
+} from '../utils/sampleEquipmentPhotos';
 
 export const initialCompanySettings: CompanySettings = {
   companyName: 'Ar Soluções - Climatização Especializada',
@@ -121,7 +125,14 @@ export const initialEquipment: Equipment[] = [
       brand: 'Carrier',
       capacity: '60.000 BTU'
     }),
-    installationPhotoDate: '2026-08-10T10:20:00Z'
+    installationPhotoDate: '2026-08-10T10:20:00Z',
+    condenserPhotoUrl: generateSampleCondenserPhoto({
+      title: 'Condensadora Externa Carrier Piso Teto 60K',
+      location: 'Telhado técnico fundos - Apoio em mísulas e coxins',
+      brand: 'Carrier',
+      capacity: '60.000 BTU'
+    }),
+    condenserPhotoDate: '2026-08-10T10:25:00Z'
   },
   {
     id: 'eq-2',
@@ -151,13 +162,20 @@ export const initialEquipment: Equipment[] = [
     }),
     labelPhotoDate: '2026-06-15T14:30:00Z',
     installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Evaporadora Cassete Salão Principal',
+      unitType: 'evaporadora',
+      location: 'Salão principal de atendimento ao cliente',
+      brand: 'Carrier',
+      capacity: '36.000 BTU'
+    }),
+    installationPhotoDate: '2026-06-15T14:35:00Z',
+    condenserPhotoUrl: generateSampleCondenserPhoto({
       title: 'Condensadora Externa Carrier 36K',
-      unitType: 'condensadora',
       location: 'Telhado técnico fundos',
       brand: 'Carrier',
       capacity: '36.000 BTU'
     }),
-    installationPhotoDate: '2026-06-15T14:40:00Z'
+    condenserPhotoDate: '2026-06-15T14:40:00Z'
   },
   {
     id: 'eq-3',
@@ -193,7 +211,14 @@ export const initialEquipment: Equipment[] = [
       brand: 'Daikin',
       capacity: '12.000 BTU'
     }),
-    installationPhotoDate: '2026-07-20T09:10:00Z'
+    installationPhotoDate: '2026-07-20T09:10:00Z',
+    condenserPhotoUrl: generateSampleCondenserPhoto({
+      title: 'Condensadora Externa Daikin Inverter R-32',
+      location: 'Área técnica externa lateral',
+      brand: 'Daikin',
+      capacity: '12.000 BTU'
+    }),
+    condenserPhotoDate: '2026-07-20T09:15:00Z'
   },
   {
     id: 'eq-4',
@@ -223,13 +248,20 @@ export const initialEquipment: Equipment[] = [
     }),
     labelPhotoDate: '2026-08-01T16:00:00Z',
     installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Evaporadora Cassete 48K Setor de Caixas',
+      unitType: 'evaporadora',
+      location: 'Setor de caixas e atendimento principal',
+      brand: 'Daikin',
+      capacity: '48.000 BTU'
+    }),
+    installationPhotoDate: '2026-08-01T16:10:00Z',
+    condenserPhotoUrl: generateSampleCondenserPhoto({
       title: 'Condensadora Externa Daikin 48K',
-      unitType: 'condensadora',
       location: 'Cobertura de máquinas supermercado',
       brand: 'Daikin',
       capacity: '48.000 BTU'
     }),
-    installationPhotoDate: '2026-08-01T16:20:00Z'
+    condenserPhotoDate: '2026-08-01T16:20:00Z'
   },
   {
     id: 'eq-5',
@@ -259,13 +291,20 @@ export const initialEquipment: Equipment[] = [
     }),
     labelPhotoDate: '2026-02-15T11:45:00Z',
     installationPhotoUrl: generateSampleInstallationPhoto({
+      title: 'Evaporadoras dos Dormitórios',
+      unitType: 'evaporadora',
+      location: 'Suíte master e quartos',
+      brand: 'Fujitsu',
+      capacity: '24.000 BTU'
+    }),
+    installationPhotoDate: '2026-02-15T11:50:00Z',
+    condenserPhotoUrl: generateSampleCondenserPhoto({
       title: 'Condensadora Multi-Split na Varanda Técnica',
-      unitType: 'condensadora',
       location: 'Área técnica varanda',
       brand: 'Fujitsu',
       capacity: '24.000 BTU'
     }),
-    installationPhotoDate: '2026-02-15T11:55:00Z'
+    condenserPhotoDate: '2026-02-15T11:55:00Z'
   }
 ];
 

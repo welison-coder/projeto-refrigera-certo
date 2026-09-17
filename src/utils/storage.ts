@@ -106,7 +106,7 @@ export const storage = {
 
       // Populate sample photos from initial data if not yet present
       const initialMatch = initialEquipment.find(ie => ie.id === eq.id);
-      if (initialMatch && (!newEq.labelPhotoUrl || !newEq.installationPhotoUrl)) {
+      if (initialMatch && (!newEq.labelPhotoUrl || !newEq.installationPhotoUrl || !newEq.condenserPhotoUrl)) {
         itemModified = true;
         newEq = {
           ...newEq,
@@ -114,6 +114,8 @@ export const storage = {
           labelPhotoDate: newEq.labelPhotoDate || initialMatch.labelPhotoDate,
           installationPhotoUrl: newEq.installationPhotoUrl || initialMatch.installationPhotoUrl,
           installationPhotoDate: newEq.installationPhotoDate || initialMatch.installationPhotoDate,
+          condenserPhotoUrl: newEq.condenserPhotoUrl || initialMatch.condenserPhotoUrl,
+          condenserPhotoDate: newEq.condenserPhotoDate || initialMatch.condenserPhotoDate,
           nominalCurrent: newEq.nominalCurrent || initialMatch.nominalCurrent,
           voltage: newEq.voltage || initialMatch.voltage
         };
@@ -264,10 +266,14 @@ export const storage = {
     Object.values(LEGACY_STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
   },
 
-  exportAllData: () => {
+  exportAllData: (options?: { isAutomatic?: boolean; customFilename?: string }) => {
+    const isAuto = Boolean(options?.isAutomatic);
+    const dateStr = new Date().toISOString().slice(0, 10);
     const data = {
       system: 'Ar Soluções',
       foundingYear: 2013,
+      backupType: isAuto ? 'automatic_daily_18h' : 'manual',
+      scheduledHour: isAuto ? 18 : undefined,
       clients: storage.getClients(),
       equipment: storage.getEquipment(),
       visits: storage.getVisits(),
@@ -280,9 +286,14 @@ export const storage = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ar-solucoes-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download =
+      options?.customFilename ||
+      (isAuto
+        ? `ar-solucoes-backup-diario-18h-${dateStr}.json`
+        : `ar-solucoes-backup-${dateStr}.json`);
     a.click();
     URL.revokeObjectURL(url);
+    return data;
   },
 
   validateBackup: (content: string): {

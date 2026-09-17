@@ -21,6 +21,7 @@ import {
 import { MaintenanceLog, Equipment, Client, CompanySettings, MaintenanceType } from '../types';
 import { formatDateBR } from '../utils/formatters';
 import { BrandLogo } from './BrandLogo';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface MaintenanceHistoryViewProps {
   maintenanceLogs: MaintenanceLog[];
@@ -49,6 +50,19 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
   const [editingLog, setEditingLog] = useState<MaintenanceLog | null>(null);
   const [previewLog, setPreviewLog] = useState<MaintenanceLog | null>(null);
   const [copiedLogId, setCopiedLogId] = useState<string | null>(null);
+
+  // Deletion confirmation modal state
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    itemName?: string;
+    description?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    onConfirm: () => {}
+  });
 
   const handleCopySignatureLink = (logId: string) => {
     const link = `${window.location.origin}/?assinar_os=${logId}`;
@@ -373,12 +387,17 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
-                      if (confirm(`Deseja excluir o registro ${log.code}?`)) {
-                        onDeleteLog(log.id);
-                      }
+                      setDeleteModalState({
+                        isOpen: true,
+                        title: 'Excluir Ordem de Serviço (OS)',
+                        itemName: `${log.code} - ${log.equipmentName}`,
+                        description: `Tem certeza que deseja excluir o histórico de manutenção e OS técnica ${log.code} (${log.equipmentName})?`,
+                        onConfirm: () => onDeleteLog(log.id)
+                      });
                     }}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                     title="Excluir Registro"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1013,6 +1032,16 @@ export const MaintenanceHistoryView: React.FC<MaintenanceHistoryViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for OS Deletion */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalState.isOpen}
+        title={deleteModalState.title}
+        itemName={deleteModalState.itemName}
+        description={deleteModalState.description}
+        onConfirm={deleteModalState.onConfirm}
+        onClose={() => setDeleteModalState(prev => ({ ...prev, isOpen: false }))}
+      />
 
     </div>
   );

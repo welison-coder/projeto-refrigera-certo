@@ -43,10 +43,12 @@ export interface Equipment {
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
   status: EquipmentStatus;
-  labelPhotoUrl?: string; // Foto da Etiqueta Técnica (modelo, nº série, BTU, corrente e gás refrigerante)
+  labelPhotoUrl?: string; // Foto 1: Etiqueta Técnica (modelo, nº série, BTU, corrente e gás refrigerante)
   labelPhotoDate?: string; // Data/hora do registro fotográfico da etiqueta
-  installationPhotoUrl?: string; // Foto da Instalação no Local (inspeção de evaporadora ou condensadora instalada)
-  installationPhotoDate?: string; // Data/hora do registro fotográfico da instalação
+  installationPhotoUrl?: string; // Foto 2: Unidade Interna / Evaporadora no Local
+  installationPhotoDate?: string; // Data/hora do registro fotográfico da unidade interna
+  condenserPhotoUrl?: string; // Foto 3: Unidade Externa / Condensadora (suporte, coxins, tubulação)
+  condenserPhotoDate?: string; // Data/hora do registro fotográfico da unidade externa
 }
 
 export interface TechnicalVisit {

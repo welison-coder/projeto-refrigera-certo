@@ -258,3 +258,19 @@ export function generateSampleInstallationPhoto(params: {
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
+export function generateSampleCondenserPhoto(params: {
+  title?: string;
+  location: string;
+  brand: string;
+  capacity: string;
+}): string {
+  return generateSampleInstallationPhoto({
+    title: params.title || `Unidade Condensadora Externa ${params.brand}`,
+    unitType: 'condensadora',
+    location: params.location,
+    brand: params.brand,
+    capacity: params.capacity
+  });
+}
+
